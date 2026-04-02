@@ -650,3 +650,33 @@ body,
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+
+
+
+/* Sil butonu için */
+.deleteBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #f8d7da;
+  color: #c82333;
+  font-size: 20px;
+  font-weight: 900;
+  border: 1px solid #f5c6cb;
+  cursor: pointer;
+}
+
+.deleteBtn:hover {
+  background: #f5c6cb;
+}
+
+/* cartCols güncellemesi (grid-template-columns) */
+.cartCols {
+  display: grid;
+  grid-template-columns: 56px 1fr 70px 90px 100px;   /* Sil | Ürün | Adet | Fiyat | Toplam */
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted, #8a8278);
+  font-weight: 700;
+}
