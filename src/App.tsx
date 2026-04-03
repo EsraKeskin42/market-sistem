@@ -270,12 +270,14 @@ function App() {
                         ×
                       </button>
 
-                      <div className="cartName">
-                        <div className="n">{item.name}</div>
-                        <div className="m">
-                          <span>{item.art}</span>
-                        </div>
+                      {/* YENİ: Yatay düzen - İkon sol, büyük bold isim sağ */}
+                      <div className="cartNameHorizontal">
+                        <div className="productIconBig">{item.art}</div>
+                        <div className="productNameBold">{item.name}</div>
                       </div>
+
+                      {/* Boş sütun - grid dengesi için */}
+                      <div></div>
 
                       <div className="cartControls">
                         <button

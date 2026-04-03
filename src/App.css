@@ -1,4 +1,3 @@
-
 /* ── GLOBAL RESET ─────────────────────────────────────────────── */
 *,
 *::before,
@@ -202,6 +201,8 @@ body,
   align-self: end;
 }
 
+/* ====================== SEPET GÜNCELLEMELERİ ====================== */
+
 /* Sepet (cart) */
 .cart {
   display: grid;
@@ -216,96 +217,179 @@ body,
 }
 
 .cartHead {
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: #f4efe6;
   border-bottom: 1px solid var(--stroke, #d9d3c8);
   flex-shrink: 0;
 }
 
+/* Başlık sütunları - 5 sütunlu grid */
 .cartCols {
   display: grid;
-  grid-template-columns: 56px 1fr 64px 78px 90px;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--muted, #8a8278);
-  font-weight: 700;
+  grid-template-columns: 56px 1fr 70px 90px 100px;
+  gap: 12px;
+  font-size: 14px;
+  color: #6a655d;
+  font-weight: 800;
+  align-items: center;
 }
 
-/* Kaydırılabilir ürün listesi — KEY: overflow:auto + min-height:0 */
+/* Kaydırılabilir ürün listesi */
 .cartRows {
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: #ffffff;
   min-height: 0;
 }
 
+/* SEPET SATIRI - YENİ GRID YAPISI */
 .cartRow {
   display: grid;
-  grid-template-columns: 1fr 70px 140px;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 12px;
+  grid-template-columns: 56px 1fr 0px 70px 140px;
+  gap: 12px;
+  padding: 14px 12px;
+  border-radius: 14px;
   background: #faf8f4;
-  border: 1px solid #eee7dc;
-  margin-bottom: 8px;
+  border: 2px solid #eee7dc;
+  margin-bottom: 10px;
+  align-items: center;
+  min-height: 100px;
 }
 
-.cartName .n {
+/* YENİ: Yatay düzen - İkon sol, isim sağ (AYNI SATIRDA) */
+.cartNameHorizontal {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: 8px 0;
+  overflow: hidden;
+}
+
+/* BÜYÜK İKON */
+.productIconBig {
+  font-size: 3.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid #e8e4df;
+}
+
+/* BÜYÜK BOLD İSİM - SOLA YASLI */
+.productNameBold {
+  font-size: 1.35rem;
   font-weight: 800;
-  font-size: 14px;
-  color: #2b2823;
+  color: #1a1a1a;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  line-height: 1.2;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.cartName .m {
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--muted, #8a8278);
-  font-weight: 700;
-}
-
+/* Adet kontrol butonları */
 .cartControls {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 8px;
-  justify-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
 }
 
-.mini {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid var(--stroke, #d9d3c8);
+.cartControls .mini {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 2px solid #d9d3c8;
   background: #f3efe7;
   cursor: pointer;
   font-weight: 900;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
 }
 
+.cartControls .mini:hover {
+  background: #e8e4df;
+  transform: scale(1.05);
+}
+
+/* Fiyat bölümü */
 .cartCalc {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
 }
 
 .calc {
-  font-size: 12px;
-  color: var(--muted, #8a8278);
-  font-weight: 800;
-  justify-self: end;
+  font-size: 1rem;
+  color: #6a655d;
+  font-weight: 700;
 }
 
 .sum {
-  font-size: 14px;
+  font-size: 1.4rem;
   font-weight: 900;
-  color: #2b2823;
-  justify-self: end;
+  color: #2d4b45;
 }
 
 .try {
+  font-size: 1.2rem;
   font-weight: 900;
-  color: #2b2823;
+  color: #8a8278;
 }
+
+/* Sil butonu */
+.deleteBtn.mini {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffebee;
+  color: #c62828;
+  border: 2px solid #ffcdd2;
+  font-size: 1.6rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.deleteBtn.mini:hover {
+  background: #ffcdd2;
+  transform: scale(1.1);
+}
+
+/* Boş sepet mesajı */
+.cartRows > div:first-child:only-child {
+  padding: 50px 20px;
+  text-align: center;
+  color: #8a8278;
+  font-size: 1.1rem;
+  font-style: italic;
+  background: #fafafa;
+  border-radius: 14px;
+  border: 2px dashed #ddd;
+}
+
+/* ESKİ .cartName .n ve .m STILLERİ KALDIRILDI - YENİ cartNameHorizontal KULLANILIYOR */
 
 /* Barkod satırı */
 .barcodeRow {
@@ -459,7 +543,6 @@ body,
   color: #2b2823;
   text-align: center;
   white-space: pre-line;
-  /* Uzun etiketlerin taşmasını önle */
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
@@ -649,34 +732,4 @@ body,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-
-
-
-/* Sil butonu için */
-.deleteBtn {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: #f8d7da;
-  color: #c82333;
-  font-size: 20px;
-  font-weight: 900;
-  border: 1px solid #f5c6cb;
-  cursor: pointer;
-}
-
-.deleteBtn:hover {
-  background: #f5c6cb;
-}
-
-/* cartCols güncellemesi (grid-template-columns) */
-.cartCols {
-  display: grid;
-  grid-template-columns: 56px 1fr 70px 90px 100px;   /* Sil | Ürün | Adet | Fiyat | Toplam */
-  gap: 10px;
-  font-size: 13px;
-  color: var(--muted, #8a8278);
-  font-weight: 700;
 }
