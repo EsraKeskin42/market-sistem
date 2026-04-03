@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 
 interface CartItem {
@@ -129,17 +129,14 @@ function App() {
     return parseFloat(priceStr.replace(',', '.').replace(' TL', '')) || 0;
   };
 
-  // ====================== ÜRÜN EKLEME ======================
-  const addToCart = useCallback((product: { name: string; price: string; art: string }, customQty?: number) => {
-    const qtyToAdd = customQty !== undefined 
-      ? customQty 
-      : (quantityInput ? parseInt(quantityInput) || 1 : 1);
-
+  // ====================== ANA EKLEME FONKSİYONU ======================
+  const addToCart = (product: { name: string; price: string; art: string }, customQty?: number) => {
+    const qtyToAdd = customQty !== undefined ? customQty : (quantityInput ? parseInt(quantityInput) || 1 : 1);
     if (qtyToAdd < 1) return;
 
     const numericPrice = parsePrice(product.price);
 
-    setCart((prev) => {
+    setCart(prev => {
       const existingIndex = prev.findIndex(item => item.name === product.name);
       if (existingIndex !== -1) {
         const updated = [...prev];
@@ -156,35 +153,7 @@ function App() {
       }
     });
 
-    setQuantityInput('');
-  }, [quantityInput]);
-
-  // ====================== KEYPAD ENTER (EN ÖNEMLİ DÜZELTME) ======================
-  const handleKeypadEnter = useCallback(() => {
-    const currentInput = quantityInput.trim();
-    if (!currentInput || activeProducts.length === 0) {
-      setQuantityInput('');
-      return;
-    }
-
-    const qty = parseInt(currentInput);
-    if (isNaN(qty) || qty < 1) {
-      setQuantityInput('');
-      return;
-    }
-
-    // En güncel değeri kullanarak ekle
-    addToCart(activeProducts[0], qty);
-  }, [quantityInput, activeProducts, addToCart]);
-
-  const handleKeypad = (key: string) => {
-    if (key === 'C') {
-      setQuantityInput('');
-    } else if (key === 'Enter') {
-      handleKeypadEnter();
-    } else {
-      setQuantityInput(prev => (prev + key).slice(0, 5));
-    }
+    setQuantityInput(''); // Her iki durumda da temizle
   };
 
   const removeFromCart = (index: number) => {
@@ -214,6 +183,25 @@ function App() {
       totalItems: cart.reduce((sum, item) => sum + item.qty, 0)
     };
   }, [cart]);
+
+  // Keypad tuşları
+  const handleKeypad = (key: string) => {
+    if (key === 'C') {
+      setQuantityInput('');
+    } else if (key === 'Enter') {
+      // Burada değeri ANINDA yakalıyoruz (stale state önlemek için)
+      const currentQtyStr = quantityInput.trim();
+      if (!currentQtyStr) return;
+      const qty = parseInt(currentQtyStr);
+      if (isNaN(qty) || qty < 1 || activeProducts.length === 0) {
+        setQuantityInput('');
+        return;
+      }
+      addToCart(activeProducts[0], qty);   // customQty ile çağır
+    } else {
+      setQuantityInput(prev => (prev + key).slice(0, 5));
+    }
+  };
 
   return (
     <div className="pos">
