@@ -1,41 +1,40 @@
-import { useEffect, useMemo, useState } from 'react'
-import './App.css'
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import './App.css';
 
 interface CartItem {
-  name: string
-  price: string
-  numericPrice: number
-  qty: number
-  art: string
+  name: string;
+  price: string;
+  numericPrice: number;
+  qty: number;
+  art: string;
 }
 
 function App() {
-  const win = globalThis as any
-  const cityFromElectron = win?.market?.city as string | null | undefined
+  const win = globalThis as any;
+  const cityFromElectron = win?.market?.city as string | null | undefined;
 
   const [storeName] = useState(() => {
-    const cityFromStorage =
-      typeof window !== 'undefined' ? window.localStorage.getItem('market_city') : null
-    return cityFromElectron || cityFromStorage || 'GAZİANTEP'
-  })
+    const cityFromStorage = typeof window !== 'undefined' ? window.localStorage.getItem('market_city') : null;
+    return cityFromElectron || cityFromStorage || 'GAZİANTEP';
+  });
 
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null)
-  const [now, setNow] = useState(() => new Date())
-  const [cart, setCart] = useState<CartItem[]>([])
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [quantityInput, setQuantityInput] = useState('');
+  const [now, setNow] = useState(() => new Date());
+  const [cart, setCart] = useState<CartItem[]>([]);
 
-  // Saat güncellemesi
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000)
-    return () => clearInterval(t)
-  }, [])
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
-  // Electron'dan şehir gelirse kaydet
   useEffect(() => {
-    if (!cityFromElectron) return
+    if (!cityFromElectron) return;
     try {
-      window.localStorage.setItem('market_city', cityFromElectron)
+      window.localStorage.setItem('market_city', cityFromElectron);
     } catch {}
-  }, [cityFromElectron])
+  }, [cityFromElectron]);
 
   const categories = useMemo(() => [
     { id: 'meyve', label: 'MEYVE', icon: '🍌' },
@@ -44,9 +43,8 @@ function App() {
     { id: 'atis', label: 'ATIŞTIRMALIK', icon: '🍪' },
     { id: 'sut', label: 'SÜT ÜRÜNLERİ', icon: '🥛' },
     { id: 'temizlik', label: 'TEMİZLİK\nMALZEMELERİ', icon: '🧽' },
-  ], [])
+  ], []);
 
-  // ====================== ÜRÜN VERİLERİ ======================
   const productsByCategory = useMemo(() => ({
     meyve: [
       { name: 'MUZ', price: '25,00 TL', art: '🍌' },
@@ -114,88 +112,113 @@ function App() {
       { name: 'KAĞIT HAVLU (6\'lı)', price: '85,00 TL', art: '🧻' },
       { name: 'TUVALET KAĞIDI (16\'lı)', price: '140,00 TL', art: '🧻' }
     ],
-  } as Record<string, Array<{ name: string; price: string; art: string }>>), [])
+  } as Record<string, Array<{ name: string; price: string; art: string }>>), []);
+
+  const allProducts = useMemo(() => Object.values(productsByCategory).flat(), [productsByCategory]);
 
   const activeProducts = useMemo(() => {
-    if (!activeCategoryId) return []
-    return productsByCategory[activeCategoryId] ?? []
-  }, [activeCategoryId, productsByCategory])
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim();
+      return allProducts.filter(p => p.name.toLowerCase().includes(term));
+    }
+    if (activeCategoryId) return productsByCategory[activeCategoryId] ?? [];
+    return [];
+  }, [searchTerm, activeCategoryId, allProducts, productsByCategory]);
 
-  // Fiyatı sayıya çevirme
   const parsePrice = (priceStr: string): number => {
-    return parseFloat(priceStr.replace(',', '.').replace(' TL', ''))
-  }
+    return parseFloat(priceStr.replace(',', '.').replace(' TL', '')) || 0;
+  };
 
-  // Sepete ürün ekleme
-  const addToCart = (product: { name: string; price: string; art: string }) => {
-    const numericPrice = parsePrice(product.price)
+  // ====================== ÜRÜN EKLEME ======================
+  const addToCart = useCallback((product: { name: string; price: string; art: string }, customQty?: number) => {
+    const qtyToAdd = customQty !== undefined 
+      ? customQty 
+      : (quantityInput ? parseInt(quantityInput) || 1 : 1);
 
-    setCart(prev => {
-      const existingIndex = prev.findIndex(item => item.name === product.name)
+    if (qtyToAdd < 1) return;
 
+    const numericPrice = parsePrice(product.price);
+
+    setCart((prev) => {
+      const existingIndex = prev.findIndex(item => item.name === product.name);
       if (existingIndex !== -1) {
-        // Aynı ürün varsa adet artır
-        const updated = [...prev]
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          qty: updated[existingIndex].qty + 1
-        }
-        return updated
+        const updated = [...prev];
+        updated[existingIndex].qty += qtyToAdd;
+        return updated;
       } else {
-        // Yeni ürün ekle
-        return [
-          ...prev,
-          { name: product.name, price: product.price, numericPrice, qty: 1, art: product.art }
-        ]
+        return [...prev, {
+          name: product.name,
+          price: product.price,
+          numericPrice,
+          qty: qtyToAdd,
+          art: product.art
+        }];
       }
-    })
-  }
+    });
 
-  // Sepetten ürün tamamen silme
+    setQuantityInput('');
+  }, [quantityInput]);
+
+  // ====================== KEYPAD ENTER (EN ÖNEMLİ DÜZELTME) ======================
+  const handleKeypadEnter = useCallback(() => {
+    const currentInput = quantityInput.trim();
+    if (!currentInput || activeProducts.length === 0) {
+      setQuantityInput('');
+      return;
+    }
+
+    const qty = parseInt(currentInput);
+    if (isNaN(qty) || qty < 1) {
+      setQuantityInput('');
+      return;
+    }
+
+    // En güncel değeri kullanarak ekle
+    addToCart(activeProducts[0], qty);
+  }, [quantityInput, activeProducts, addToCart]);
+
+  const handleKeypad = (key: string) => {
+    if (key === 'C') {
+      setQuantityInput('');
+    } else if (key === 'Enter') {
+      handleKeypadEnter();
+    } else {
+      setQuantityInput(prev => (prev + key).slice(0, 5));
+    }
+  };
+
   const removeFromCart = (index: number) => {
-    setCart(prev => prev.filter((_, i) => i !== index))
-  }
+    setCart(prev => prev.filter((_, i) => i !== index));
+  };
 
-  // Adet değiştirme (artırma / azaltma)
   const changeQuantity = (index: number, delta: number) => {
     setCart(prev => {
-      const newCart = [...prev]
-      const currentQty = newCart[index].qty
-      const newQty = currentQty + delta
+      const newCart = [...prev];
+      const newQty = newCart[index].qty + delta;
+      if (newQty < 1) return newCart.filter((_, i) => i !== index);
+      newCart[index].qty = newQty;
+      return newCart;
+    });
+  };
 
-      if (newQty < 1) {
-        return newCart.filter((_, i) => i !== index)
-      }
-
-      newCart[index] = {
-        ...newCart[index],
-        qty: newQty
-      }
-
-      return newCart
-    })
-  }
-
-  // Toplamları hesaplama
   const totals = useMemo(() => {
-    const subtotal = cart.reduce((sum, item) => sum + item.numericPrice * item.qty, 0)
-    const tax = subtotal * 0.08 // %8 KDV
-    const discount = 0
-    const total = subtotal + tax - discount
+    const subtotal = cart.reduce((sum, item) => sum + item.numericPrice * item.qty, 0);
+    const tax = subtotal * 0.08;
+    const total = subtotal + tax;
 
     return {
       subtotal: subtotal.toFixed(2).replace('.', ','),
       tax: tax.toFixed(2).replace('.', ','),
-      discount: discount.toFixed(2).replace('.', ','),
-      total: total.toFixed(2).replace('.', ',')
-    }
-  }, [cart])
+      discount: '0,00',
+      total: total.toFixed(2).replace('.', ','),
+      totalItems: cart.reduce((sum, item) => sum + item.qty, 0)
+    };
+  }, [cart]);
 
   return (
     <div className="pos">
       <div className="posGrid">
         <aside className="left">
-          {/* Brand Row */}
           <div className="brandRow">
             <div className="brand">{storeName}</div>
             <div className="dt">
@@ -218,28 +241,36 @@ function App() {
             </button>
           </div>
 
-          {/* Search Row */}
           <div className="searchRow">
             <label className="field">
               <div className="fieldLabel">Ürün</div>
-              <input className="fieldInput" placeholder="Ürün ara..." />
+              <input
+                className="fieldInput"
+                placeholder="Ürün ara..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </label>
+
             <div className="keypad">
-              <button type="button">1</button>
-              <button type="button">2</button>
-              <button type="button">3</button>
-              <button type="button">5</button>
-              <button type="button">6</button>
-              <button type="button">7</button>
-              <button type="button">8</button>
-              <button type="button">9</button>
-              <button type="button">0</button>
-              <button type="button">C</button>
+              {['1','2','3','4','5','6','7','8','9','0','C','Enter'].map(key => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handleKeypad(key)}
+                  className={key === 'Enter' ? 'enterBtn' : ''}
+                >
+                  {key}
+                </button>
+              ))}
             </div>
-            <button className="enterBtn" type="button">Enter</button>
+
+            <div className="quantityDisplay">
+              <div className="fieldLabel">Adet</div>
+              <div className="qtyValue">{quantityInput || '—'}</div>
+            </div>
           </div>
 
-          {/* ====================== SEPET ====================== */}
           <div className="cart">
             <div className="cartHead">
               <div className="cartCols">
@@ -250,62 +281,42 @@ function App() {
                 <span>Toplam</span>
               </div>
             </div>
-
             <div className="cartRows">
               {cart.length === 0 ? (
-                <div style={{ padding: '40px 20px', textAlign: 'center', color: '#8a8278', fontStyle: 'italic' }}>
+                <div className="emptyCartMessage">
                   Sepetiniz boş. Ürün eklemek için kategorilerden bir ürün seçin.
                 </div>
               ) : (
                 cart.map((item, index) => {
-                  const lineTotal = (item.numericPrice * item.qty).toFixed(2).replace('.', ',')
-
+                  const lineTotal = (item.numericPrice * item.qty).toFixed(2).replace('.', ',');
                   return (
-                    <div className="cartRow" key={index}>
-                      <button
-                        className="mini deleteBtn"
-                        type="button"
-                        onClick={() => removeFromCart(index)}
-                      >
-                        ×
-                      </button>
-
-                      {/* YENİ: Yatay düzen - İkon sol, büyük bold isim sağ */}
-                      <div className="cartNameHorizontal">
-                        <div className="productIconBig">{item.art}</div>
-                        <div className="productNameBold">{item.name}</div>
+                    <div className="cartRow compact" key={index}>
+                      <button className="mini deleteBtn small" type="button" onClick={() => removeFromCart(index)}>×</button>
+                      <div className="cartNameCompact">
+                        <div className="productNameCompact">{item.name}</div>
                       </div>
-
-                      {/* Boş sütun - grid dengesi için */}
                       <div></div>
-
-                      <div className="cartControls">
-                        <button
-                          className="mini"
-                          type="button"
-                          onClick={() => changeQuantity(index, -1)}
-                        >
-                          −
-                        </button>
-                        <button
-                          className="mini"
-                          type="button"
-                          onClick={() => changeQuantity(index, 1)}
-                        >
-                          ＋
-                        </button>
+                      <div className="cartControls compact">
+                        <button className="mini small" type="button" onClick={() => changeQuantity(index, -1)}>−</button>
+                        <button className="mini small" type="button" onClick={() => changeQuantity(index, 1)}>＋</button>
                       </div>
-
-                      <div className="cartCalc">
-                        <div className="calc">{item.qty} × {item.price}</div>
-                        <div className="sum">{lineTotal}</div>
-                        <div className="try" aria-hidden="true">₺</div>
+                      <div className="cartCalc compact">
+                        <div className="calc small">{item.qty} × {item.price}</div>
+                        <div className="sum small">{lineTotal}</div>
+                        <div className="try small" aria-hidden="true">₺</div>
                       </div>
                     </div>
-                  )
+                  );
                 })
               )}
             </div>
+
+            {cart.length > 0 && (
+              <div className="cartItemCount">
+                <span className="itemCountLabel">Sepetteki Ürünler:</span>
+                <span className="itemCountValue">{totals.totalItems} adet</span>
+              </div>
+            )}
 
             <div className="barcodeRow">
               <div className="barcodeInput">
@@ -319,20 +330,16 @@ function App() {
 
             <div className="payRow">
               <button className="payBtn cash" type="button">
-                <span className="payIcon" aria-hidden="true">📷</span>
-                Nakit
+                <span className="payIcon" aria-hidden="true">📷</span> Nakit
               </button>
               <button className="payBtn card" type="button">
-                <span className="payIcon" aria-hidden="true">💳</span>
-                K. Kartı
+                <span className="payIcon" aria-hidden="true">💳</span> K. Kartı
               </button>
               <button className="payBtn open" type="button">
-                <span className="payIcon" aria-hidden="true">🧾</span>
-                Açık Hesap
+                <span className="payIcon" aria-hidden="true">🧾</span> Açık Hesap
               </button>
               <button className="payBtn change" type="button">
-                <span className="payIcon" aria-hidden="true">🪙</span>
-                Para Üstü
+                <span className="payIcon" aria-hidden="true">🪙</span> Para Üstü
               </button>
             </div>
           </div>
@@ -341,35 +348,44 @@ function App() {
         <main className="right">
           <div className="cats">
             {categories.map((c) => {
-              const active = c.id === activeCategoryId
+              const active = c.id === activeCategoryId;
               return (
                 <button
                   className={`cat ${active ? 'active' : ''}`}
                   type="button"
                   key={c.id}
-                  onClick={() => setActiveCategoryId(c.id)}
+                  onClick={() => {
+                    setActiveCategoryId(c.id);
+                    setSearchTerm('');
+                  }}
                 >
                   <div className="catIco" aria-hidden="true">{c.icon}</div>
                   <div className="catLbl">{c.label}</div>
                 </button>
-              )
+              );
             })}
           </div>
 
           <div className="productsWrap">
             <div className="products">
-              {activeProducts.map((p, idx) => (
-                <button
-                  className="prod"
-                  type="button"
-                  key={idx}
-                  onClick={() => addToCart(p)}
-                >
-                  <div className="prodImg" aria-hidden="true">{p.art}</div>
-                  <div className="prodName">{p.name}</div>
-                  <div className="prodPrice">{p.price}</div>
-                </button>
-              ))}
+              {activeProducts.length === 0 ? (
+                <div className="emptyProducts">
+                  {searchTerm ? 'Aradığınız ürün bulunamadı.' : 'Lütfen bir kategori seçin veya ürün arayın.'}
+                </div>
+              ) : (
+                activeProducts.map((p, idx) => (
+                  <button
+                    className="prod"
+                    type="button"
+                    key={idx}
+                    onClick={() => addToCart(p)}
+                  >
+                    <div className="prodImg" aria-hidden="true">{p.art}</div>
+                    <div className="prodName">{p.name}</div>
+                    <div className="prodPrice">{p.price}</div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
 
@@ -385,12 +401,10 @@ function App() {
                 <button className="miniAction" type="button">Bekleme</button>
               </div>
             </div>
-
             <div className="totalMid">
               <div className="totalTitle">TOPLAM ÖDENECEK:</div>
               <div className="totalValue">{totals.total} ₺</div>
             </div>
-
             <div className="totalRight">
               <div className="totals">
                 <div><span>Ara Toplam:</span><b>{totals.subtotal}</b></div>
@@ -409,7 +423,7 @@ function App() {
         </main>
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
