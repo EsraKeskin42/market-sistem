@@ -24,6 +24,13 @@ function App() {
   const [now, setNow] = useState(() => new Date());
   const [cart, setCart] = useState<CartItem[]>([]);
 
+  // Tartı modal state'leri
+  const weightCategories = ['meyve', 'sebze'];
+  const [scaleModal, setScaleModal] = useState<{
+    product: { name: string; price: string; art: string };
+  } | null>(null);
+  const [scaleKg, setScaleKg] = useState('');
+
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
@@ -116,10 +123,13 @@ function App() {
 
   const allProducts = useMemo(() => Object.values(productsByCategory).flat(), [productsByCategory]);
 
+  // Düzeltilmiş arama: Türkçe karakter destekli, tam ve kısmi eşleşme
   const activeProducts = useMemo(() => {
     if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase().trim();
-      return allProducts.filter(p => p.name.toLowerCase().includes(term));
+      const normalize = (s: string) =>
+        s.toLocaleLowerCase('tr-TR').replace(/\s+/g, ' ').trim();
+      const term = normalize(searchTerm);
+      return allProducts.filter(p => normalize(p.name).includes(term));
     }
     if (activeCategoryId) return productsByCategory[activeCategoryId] ?? [];
     return [];
@@ -129,12 +139,54 @@ function App() {
     return parseFloat(priceStr.replace(',', '.').replace(' TL', '')) || 0;
   };
 
-  // ====================== ANA EKLEME FONKSİYONU ======================
-  const addToCart = (product: { name: string; price: string; art: string }, customQty?: number) => {
-    const qtyToAdd = customQty !== undefined ? customQty : (quantityInput ? parseInt(quantityInput) || 1 : 1);
-    if (qtyToAdd < 1) return;
+  // Ürüne tıklandığında: meyve/sebze ise tartı modalı aç, diğerleri direkt ekle
+  const handleProductClick = (p: { name: string; price: string; art: string }) => {
+    const catId =
+      activeCategoryId ??
+      Object.entries(productsByCategory).find(([, prods]) =>
+        prods.some(x => x.name === p.name)
+      )?.[0];
 
-    const numericPrice = parsePrice(product.price);
+    if (catId && weightCategories.includes(catId)) {
+      setScaleKg('');
+      setScaleModal({ product: p });
+    } else {
+      addToCart(p);
+    }
+  };
+
+  // Ana ekleme fonksiyonu — kg parametresi ile tartılı ürün desteği
+  const addToCart = (
+    product: { name: string; price: string; art: string },
+    customQty?: number,
+    kg?: number
+  ) => {
+    const basePrice = parsePrice(product.price);
+
+    if (kg !== undefined && kg > 0) {
+      // Tartılı ürün: fiyat = birim fiyat × kg
+      const numericPrice = parseFloat((basePrice * kg).toFixed(2));
+      const displayPrice = `${numericPrice.toFixed(2).replace('.', ',')} TL`;
+      const itemName = `${product.name} (${kg.toFixed(3)} kg)`;
+
+      setCart(prev => [
+        ...prev,
+        {
+          name: itemName,
+          price: displayPrice,
+          numericPrice,
+          qty: 1,
+          art: product.art
+        }
+      ]);
+      return;
+    }
+
+    // Normal ürün
+    const qtyToAdd = customQty !== undefined
+      ? customQty
+      : (quantityInput ? parseInt(quantityInput) || 1 : 1);
+    if (qtyToAdd < 1) return;
 
     setCart(prev => {
       const existingIndex = prev.findIndex(item => item.name === product.name);
@@ -142,18 +194,20 @@ function App() {
         const updated = [...prev];
         updated[existingIndex].qty += qtyToAdd;
         return updated;
-      } else {
-        return [...prev, {
+      }
+      return [
+        ...prev,
+        {
           name: product.name,
           price: product.price,
-          numericPrice,
+          numericPrice: basePrice,
           qty: qtyToAdd,
           art: product.art
-        }];
-      }
+        }
+      ];
     });
 
-    setQuantityInput(''); // Her iki durumda da temizle
+    setQuantityInput('');
   };
 
   const removeFromCart = (index: number) => {
@@ -184,12 +238,10 @@ function App() {
     };
   }, [cart]);
 
-  // Keypad tuşları
   const handleKeypad = (key: string) => {
     if (key === 'C') {
       setQuantityInput('');
     } else if (key === 'Enter') {
-      // Burada değeri ANINDA yakalıyoruz (stale state önlemek için)
       const currentQtyStr = quantityInput.trim();
       if (!currentQtyStr) return;
       const qty = parseInt(currentQtyStr);
@@ -197,7 +249,7 @@ function App() {
         setQuantityInput('');
         return;
       }
-      addToCart(activeProducts[0], qty);   // customQty ile çağır
+      addToCart(activeProducts[0], qty);
     } else {
       setQuantityInput(prev => (prev + key).slice(0, 5));
     }
@@ -366,7 +418,7 @@ function App() {
                     className="prod"
                     type="button"
                     key={idx}
-                    onClick={() => addToCart(p)}
+                    onClick={() => handleProductClick(p)}
                   >
                     <div className="prodImg" aria-hidden="true">{p.art}</div>
                     <div className="prodName">{p.name}</div>
@@ -410,6 +462,96 @@ function App() {
           </div>
         </main>
       </div>
+
+      {/* Tartı Modalı */}
+      {scaleModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+        }}>
+          <div style={{
+            background: '#faf7f2', borderRadius: 18, padding: 28, width: 340,
+            border: '1px solid #d9d3c8', display: 'grid', gap: 18
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 44, lineHeight: 1 }}>{scaleModal.product.art}</span>
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 17, color: '#2b2823' }}>
+                  {scaleModal.product.name}
+                </div>
+                <div style={{ color: '#6a655d', fontSize: 13, marginTop: 2 }}>
+                  Birim fiyat: {scaleModal.product.price}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 700, color: '#6a655d', fontSize: 13, marginBottom: 6 }}>
+                Tartı Ağırlığı (kg)
+              </div>
+              <input
+                type="number"
+                step="0.001"
+                min="0"
+                placeholder="0.000"
+                value={scaleKg}
+                onChange={e => setScaleKg(e.target.value)}
+                autoFocus
+                style={{
+                  width: '100%', height: 56, borderRadius: 12,
+                  border: '2px solid #4a8f6b', fontSize: 26, fontWeight: 900,
+                  textAlign: 'center', outline: 'none', color: '#2d4b45',
+                  background: '#fff', boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            {scaleKg && parseFloat(scaleKg) > 0 && (
+              <div style={{
+                background: '#e8f5ee', borderRadius: 12, padding: '10px 16px',
+                fontWeight: 900, color: '#2d4b45', fontSize: 16, textAlign: 'center',
+                border: '1px solid #b2d8c0'
+              }}>
+                Toplam: {(parsePrice(scaleModal.product.price) * parseFloat(scaleKg))
+                  .toFixed(2).replace('.', ',')} TL
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => setScaleModal(null)}
+                style={{
+                  height: 48, borderRadius: 12, border: '1px solid #d9d3c8',
+                  background: '#f4efe6', fontWeight: 800, cursor: 'pointer',
+                  fontSize: 15, color: '#2b2823'
+                }}
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                disabled={!scaleKg || parseFloat(scaleKg) <= 0}
+                onClick={() => {
+                  const kg = parseFloat(scaleKg);
+                  if (kg > 0) {
+                    addToCart(scaleModal.product, undefined, kg);
+                    setScaleModal(null);
+                  }
+                }}
+                style={{
+                  height: 48, borderRadius: 12, border: '1px solid #4a8f6b',
+                  background: '#2d4b45', color: '#fff', fontWeight: 800,
+                  cursor: 'pointer', fontSize: 15,
+                  opacity: (!scaleKg || parseFloat(scaleKg) <= 0) ? 0.4 : 1
+                }}
+              >
+                Sepete Ekle ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
