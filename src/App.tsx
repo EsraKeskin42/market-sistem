@@ -293,6 +293,10 @@ function App() {
     navigate('/price-update');
   };
 
+  const handleReports = () => {
+    navigate('/reports');
+  };
+
   const printReceipt = () => {
     const receiptWindow = window.open('', '_blank', 'width=400,height=600');
     if (!receiptWindow) return;
@@ -682,8 +686,14 @@ function App() {
             >
               💰 Fiyat Güncelle
             </button>
+            <button 
+              type="button"
+              onClick={handleReports}
+              style={{ background: '#2196f3', color: 'white', fontWeight: 'bold' }}
+            >
+              📊 Raporlar
+            </button>
             <button type="button">Stok Seç</button>
-            <button type="button">Raporlar</button>
           </div>
         </main>
       </div>
