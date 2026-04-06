@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './App.css';
 
 interface CartItem {
@@ -9,7 +10,10 @@ interface CartItem {
   art: string;
 }
 
+type PaymentType = 'nakit' | 'kredi' | 'acik' | null;
+
 function App() {
+  const navigate = useNavigate();
   const win = globalThis as any;
   const cityFromElectron = win?.market?.city as string | null | undefined;
 
@@ -23,6 +27,12 @@ function App() {
   const [quantityInput, setQuantityInput] = useState('');
   const [now, setNow] = useState(() => new Date());
   const [cart, setCart] = useState<CartItem[]>([]);
+  
+  // Seçili satır indeksi (satır sil için)
+  const [selectedCartIndex, setSelectedCartIndex] = useState<number | null>(null);
+
+  // Ödeme modal state
+  const [paymentModal, setPaymentModal] = useState<PaymentType>(null);
 
   // Tartı modal state'leri
   const weightCategories = ['meyve', 'sebze'];
@@ -54,76 +64,75 @@ function App() {
 
   const productsByCategory = useMemo(() => ({
     meyve: [
-      { name: 'MUZ', price: '25,00 TL', art: '🍌' },
-      { name: 'ELMA (kg)', price: '20,00 TL', art: '🍎' },
-      { name: 'ÇİLEK (Paket)', price: '35,00 TL', art: '🍓' },
-      { name: 'KARPUZ (kg)', price: '8,00 TL', art: '🍉' },
-      { name: 'ÜZÜM', price: '30,00 TL', art: '🍇' },
-      { name: 'LİMON', price: '18,00 TL', art: '🍋' },
+      { name: 'MUZ', price: '25,00 TL', art: '🍌', barcode: '1234567890001' },
+      { name: 'ELMA (kg)', price: '20,00 TL', art: '🍎', barcode: '1234567890002' },
+      { name: 'ÇİLEK (Paket)', price: '35,00 TL', art: '🍓', barcode: '1234567890003' },
+      { name: 'KARPUZ (kg)', price: '8,00 TL', art: '🍉', barcode: '1234567890004' },
+      { name: 'ÜZÜM', price: '30,00 TL', art: '🍇', barcode: '1234567890005' },
+      { name: 'LİMON', price: '18,00 TL', art: '🍋', barcode: '1234567890006' },
     ],
     sebze: [
-      { name: 'DOMATES (kg)', price: '25,00 TL', art: '🍅' },
-      { name: 'SALATALIK (kg)', price: '20,00 TL', art: '🥒' },
-      { name: 'BİBER (kg)', price: '30,00 TL', art: '🫑' },
-      { name: 'PATLICAN (kg)', price: '28,00 TL', art: '🍆' },
-      { name: 'PATATES (kg)', price: '18,00 TL', art: '🥔' },
-      { name: 'SOĞAN (kg)', price: '15,00 TL', art: '🧅' },
-      { name: 'HAVUÇ (kg)', price: '17,00 TL', art: '🥕' },
-      { name: 'BROKOLİ (Adet)', price: '35,00 TL', art: '🥦' },
-      { name: 'MISIR (Adet)', price: '12,00 TL', art: '🌽' },
-      { name: 'SARIMSAK (Demet)', price: '40,00 TL', art: '🧄' }
+      { name: 'DOMATES (kg)', price: '25,00 TL', art: '🍅', barcode: '1234567890010' },
+      { name: 'SALATALIK (kg)', price: '20,00 TL', art: '🥒', barcode: '1234567890011' },
+      { name: 'BİBER (kg)', price: '30,00 TL', art: '🫑', barcode: '1234567890012' },
+      { name: 'PATLICAN (kg)', price: '28,00 TL', art: '🍆', barcode: '1234567890013' },
+      { name: 'PATATES (kg)', price: '18,00 TL', art: '🥔', barcode: '1234567890014' },
+      { name: 'SOĞAN (kg)', price: '15,00 TL', art: '🧅', barcode: '1234567890015' },
+      { name: 'HAVUÇ (kg)', price: '17,00 TL', art: '🥕', barcode: '1234567890016' },
+      { name: 'BROKOLİ (Adet)', price: '35,00 TL', art: '🥦', barcode: '1234567890017' },
+      { name: 'MISIR (Adet)', price: '12,00 TL', art: '🌽', barcode: '1234567890018' },
+      { name: 'SARIMSAK (Demet)', price: '40,00 TL', art: '🧄', barcode: '1234567890019' }
     ],
     bakliyat: [
-      { name: 'KURU FASULYE (kg)', price: '85,00 TL', art: '⚪' },
-      { name: 'KIRMIZI MERCİMEK (kg)', price: '45,00 TL', art: '🟠' },
-      { name: 'NOHUT (kg)', price: '75,00 TL', art: '🤎' },
-      { name: 'PİRİNÇ (Osmancık kg)', price: '60,00 TL', art: '🍚' },
-      { name: 'BULGUR (Pilavlık kg)', price: '35,00 TL', art: '🌾' },
-      { name: 'YEŞİL MERCİMEK (kg)', price: '55,00 TL', art: '🟢' },
-      { name: 'BARBUNYA (kg)', price: '95,00 TL', art: '🥜' },
-      { name: 'MISIR PATLATMALIK (kg)', price: '40,00 TL', art: '🍿' }
+      { name: 'KURU FASULYE (kg)', price: '85,00 TL', art: '⚪', barcode: '1234567890020' },
+      { name: 'KIRMIZI MERCİMEK (kg)', price: '45,00 TL', art: '🟠', barcode: '1234567890021' },
+      { name: 'NOHUT (kg)', price: '75,00 TL', art: '🤎', barcode: '1234567890022' },
+      { name: 'PİRİNÇ (Osmancık kg)', price: '60,00 TL', art: '🍚', barcode: '1234567890023' },
+      { name: 'BULGUR (Pilavlık kg)', price: '35,00 TL', art: '🌾', barcode: '1234567890024' },
+      { name: 'YEŞİL MERCİMEK (kg)', price: '55,00 TL', art: '🟢', barcode: '1234567890025' },
+      { name: 'BARBUNYA (kg)', price: '95,00 TL', art: '🥜', barcode: '1234567890026' },
+      { name: 'MISIR PATLATMALIK (kg)', price: '40,00 TL', art: '🍿', barcode: '1234567890027' }
     ],
     atis: [
-      { name: 'SÜTLÜ ÇİKOLATA', price: '22,50 TL', art: '🍫' },
-      { name: 'TUZLU FISTIK (Paket)', price: '30,00 TL', art: '🥜' },
-      { name: 'PATATES CİPSİ (Large)', price: '45,00 TL', art: '🥔' },
-      { name: 'BİSKÜVİ (Tam Buğday)', price: '18,50 TL', art: '🍪' },
-      { name: 'KEK (Meyveli)', price: '12,00 TL', art: '🧁' },
-      { name: 'GOFRET (Fındıklı)', price: '10,00 TL', art: '🧇' },
-      { name: 'JELİBON', price: '25,00 TL', art: '🍬' },
-      { name: 'MISIR CİPSİ', price: '42,00 TL', art: '🌽' },
-      { name: 'MEYVE BARI (Atom)', price: '20,00 TL', art: '🍯' },
-      { name: 'KRAKER (Baharatlı)', price: '15,00 TL', art: '🥨' }
+      { name: 'SÜTLÜ ÇİKOLATA', price: '22,50 TL', art: '🍫', barcode: '1234567890030' },
+      { name: 'TUZLU FISTIK (Paket)', price: '30,00 TL', art: '🥜', barcode: '1234567890031' },
+      { name: 'PATATES CİPSİ (Large)', price: '45,00 TL', art: '🥔', barcode: '1234567890032' },
+      { name: 'BİSKÜVİ (Tam Buğday)', price: '18,50 TL', art: '🍪', barcode: '1234567890033' },
+      { name: 'KEK (Meyveli)', price: '12,00 TL', art: '🧁', barcode: '1234567890034' },
+      { name: 'GOFRET (Fındıklı)', price: '10,00 TL', art: '🧇', barcode: '1234567890035' },
+      { name: 'JELİBON', price: '25,00 TL', art: '🍬', barcode: '1234567890036' },
+      { name: 'MISIR CİPSİ', price: '42,00 TL', art: '🌽', barcode: '1234567890037' },
+      { name: 'MEYVE BARI (Atom)', price: '20,00 TL', art: '🍯', barcode: '1234567890038' },
+      { name: 'KRAKER (Baharatlı)', price: '15,00 TL', art: '🥨', barcode: '1234567890039' }
     ],
     sut: [
-      { name: 'TAM YAĞLI SÜT (1L)', price: '34,50 TL', art: '🥛' },
-      { name: 'YOĞURT (2kg)', price: '65,00 TL', art: '🥣' },
-      { name: 'BEYAZ PEYNİR (500g)', price: '120,00 TL', art: '🧀' },
-      { name: 'KAŞAR PEYNİRİ (400g)', price: '145,00 TL', art: '🧀' },
-      { name: 'TEREYAĞI (250g)', price: '95,00 TL', art: '🧈' },
-      { name: 'AYRAN (1.5L)', price: '28,00 TL', art: '🥤' },
-      { name: 'KAYMAK (200g)', price: '70,00 TL', art: '🍯' },
-      { name: 'KEFİR (1L)', price: '42,00 TL', art: '🥛' },
-      { name: 'LABNE (200g)', price: '35,00 TL', art: '🥣' },
-      { name: 'SÜZME YOĞURT (900g)', price: '85,00 TL', art: '🥣' }
+      { name: 'TAM YAĞLI SÜT (1L)', price: '34,50 TL', art: '🥛', barcode: '1234567890040' },
+      { name: 'YOĞURT (2kg)', price: '65,00 TL', art: '🥣', barcode: '1234567890041' },
+      { name: 'BEYAZ PEYNİR (500g)', price: '120,00 TL', art: '🧀', barcode: '1234567890042' },
+      { name: 'KAŞAR PEYNİRİ (400g)', price: '145,00 TL', art: '🧀', barcode: '1234567890043' },
+      { name: 'TEREYAĞI (250g)', price: '95,00 TL', art: '🧈', barcode: '1234567890044' },
+      { name: 'AYRAN (1.5L)', price: '28,00 TL', art: '🥤', barcode: '1234567890045' },
+      { name: 'KAYMAK (200g)', price: '70,00 TL', art: '🍯', barcode: '1234567890046' },
+      { name: 'KEFİR (1L)', price: '42,00 TL', art: '🥛', barcode: '1234567890047' },
+      { name: 'LABNE (200g)', price: '35,00 TL', art: '🥣', barcode: '1234567890048' },
+      { name: 'SÜZME YOĞURT (900g)', price: '85,00 TL', art: '🥣', barcode: '1234567890049' }
     ],
     temizlik: [
-      { name: 'ÇAMAŞIR DETERJANI (5kg)', price: '185,00 TL', art: '🧺' },
-      { name: 'YUMUŞATICI (1.5L)', price: '65,00 TL', art: '🌸' },
-      { name: 'BULAŞIK DETERJANI (Tablet)', price: '210,00 TL', art: '🍽️' },
-      { name: 'SIVI BULAŞIK DETERJANI', price: '45,00 TL', art: '🧼' },
-      { name: 'YÜZEY TEMİZLEYİCİ (2L)', price: '55,00 TL', art: '✨' },
-      { name: 'ÇAMAŞIR SUYU (1L)', price: '38,00 TL', art: '🧪' },
-      { name: 'CAM TEMİZLEYİCİ', price: '32,00 TL', art: '🪟' },
-      { name: 'SIVI SABUN (500ml)', price: '42,00 TL', art: '🧼' },
-      { name: 'KAĞIT HAVLU (6\'lı)', price: '85,00 TL', art: '🧻' },
-      { name: 'TUVALET KAĞIDI (16\'lı)', price: '140,00 TL', art: '🧻' }
+      { name: 'ÇAMAŞIR DETERJANI (5kg)', price: '185,00 TL', art: '🧺', barcode: '1234567890050' },
+      { name: 'YUMUŞATICI (1.5L)', price: '65,00 TL', art: '🌸', barcode: '1234567890051' },
+      { name: 'BULAŞIK DETERJANI (Tablet)', price: '210,00 TL', art: '🍽️', barcode: '1234567890052' },
+      { name: 'SIVI BULAŞIK DETERJANI', price: '45,00 TL', art: '🧼', barcode: '1234567890053' },
+      { name: 'YÜZEY TEMİZLEYİCİ (2L)', price: '55,00 TL', art: '✨', barcode: '1234567890054' },
+      { name: 'ÇAMAŞIR SUYU (1L)', price: '38,00 TL', art: '🧪', barcode: '1234567890055' },
+      { name: 'CAM TEMİZLEYİCİ', price: '32,00 TL', art: '🪟', barcode: '1234567890056' },
+      { name: 'SIVI SABUN (500ml)', price: '42,00 TL', art: '🧼', barcode: '1234567890057' },
+      { name: 'KAĞIT HAVLU (6\'lı)', price: '85,00 TL', art: '🧻', barcode: '1234567890058' },
+      { name: 'TUVALET KAĞIDI (16\'lı)', price: '140,00 TL', art: '🧻', barcode: '1234567890059' }
     ],
-  } as Record<string, Array<{ name: string; price: string; art: string }>>), []);
+  } as Record<string, Array<{ name: string; price: string; art: string; barcode: string }>>), []);
 
   const allProducts = useMemo(() => Object.values(productsByCategory).flat(), [productsByCategory]);
 
-  // Düzeltilmiş arama: Türkçe karakter destekli, tam ve kısmi eşleşme
   const activeProducts = useMemo(() => {
     if (searchTerm.trim()) {
       const normalize = (s: string) =>
@@ -139,7 +148,6 @@ function App() {
     return parseFloat(priceStr.replace(',', '.').replace(' TL', '')) || 0;
   };
 
-  // Ürüne tıklandığında: meyve/sebze ise tartı modalı aç, diğerleri direkt ekle
   const handleProductClick = (p: { name: string; price: string; art: string }) => {
     const catId =
       activeCategoryId ??
@@ -155,7 +163,6 @@ function App() {
     }
   };
 
-  // Ana ekleme fonksiyonu — kg parametresi ile tartılı ürün desteği
   const addToCart = (
     product: { name: string; price: string; art: string },
     customQty?: number,
@@ -164,7 +171,6 @@ function App() {
     const basePrice = parsePrice(product.price);
 
     if (kg !== undefined && kg > 0) {
-      // Tartılı ürün: fiyat = birim fiyat × kg
       const numericPrice = parseFloat((basePrice * kg).toFixed(2));
       const displayPrice = `${numericPrice.toFixed(2).replace('.', ',')} TL`;
       const itemName = `${product.name} (${kg.toFixed(3)} kg)`;
@@ -182,7 +188,6 @@ function App() {
       return;
     }
 
-    // Normal ürün
     const qtyToAdd = customQty !== undefined
       ? customQty
       : (quantityInput ? parseInt(quantityInput) || 1 : 1);
@@ -212,6 +217,11 @@ function App() {
 
   const removeFromCart = (index: number) => {
     setCart(prev => prev.filter((_, i) => i !== index));
+    if (selectedCartIndex === index) {
+      setSelectedCartIndex(null);
+    } else if (selectedCartIndex !== null && selectedCartIndex > index) {
+      setSelectedCartIndex(selectedCartIndex - 1);
+    }
   };
 
   const changeQuantity = (index: number, delta: number) => {
@@ -222,6 +232,16 @@ function App() {
       newCart[index].qty = newQty;
       return newCart;
     });
+  };
+
+  const selectCartRow = (index: number) => {
+    setSelectedCartIndex(index);
+  };
+
+  const handleDeleteRow = () => {
+    if (selectedCartIndex !== null && selectedCartIndex >= 0 && selectedCartIndex < cart.length) {
+      removeFromCart(selectedCartIndex);
+    }
   };
 
   const totals = useMemo(() => {
@@ -252,6 +272,134 @@ function App() {
       addToCart(activeProducts[0], qty);
     } else {
       setQuantityInput(prev => (prev + key).slice(0, 5));
+    }
+  };
+
+  const openPaymentModal = (type: PaymentType) => {
+    if (cart.length === 0) return;
+    setPaymentModal(type);
+  };
+
+  const closePaymentModal = () => {
+    setPaymentModal(null);
+  };
+
+  const handlePriceUpdate = () => {
+    // Tüm ürünleri localStorage'a kaydet ve fiyat güncelleme sayfasına git
+    const allProductsData = Object.entries(productsByCategory).flatMap(([category, products]) =>
+      products.map(p => ({ ...p, category }))
+    );
+    localStorage.setItem('products_data', JSON.stringify(allProductsData));
+    navigate('/price-update');
+  };
+
+  const printReceipt = () => {
+    const receiptWindow = window.open('', '_blank', 'width=400,height=600');
+    if (!receiptWindow) return;
+
+    const receiptDate = new Date().toLocaleString('tr-TR');
+    const paymentTypeText = paymentModal === 'nakit' ? 'NAKİT' : 
+                           paymentModal === 'kredi' ? 'KREDİ KARTI' : 'AÇIK HESAP';
+    
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Fiş</title>
+        <style>
+          body { 
+            font-family: 'Courier New', monospace; 
+            padding: 20px; 
+            width: 320px;
+            margin: 0 auto;
+          }
+          .header { text-align: center; margin-bottom: 20px; }
+          .store-name { font-size: 18px; font-weight: bold; }
+          .divider { border-top: 1px dashed #000; margin: 10px 0; }
+          .item { display: flex; justify-content: space-between; margin: 5px 0; font-size: 12px; }
+          .item-name { flex: 1; }
+          .item-qty { width: 40px; text-align: center; }
+          .item-price { width: 60px; text-align: right; }
+          .totals { margin-top: 15px; }
+          .total-row { display: flex; justify-content: space-between; margin: 5px 0; }
+          .grand-total { font-size: 16px; font-weight: bold; margin-top: 10px; }
+          .footer { text-align: center; margin-top: 20px; font-size: 11px; }
+          .payment-type { text-align: center; margin: 10px 0; font-weight: bold; }
+          @media print {
+            body { width: 80mm; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="store-name">${storeName}</div>
+          <div>${receiptDate}</div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        ${cart.map(item => `
+          <div class="item">
+            <span class="item-name">${item.name}</span>
+            <span class="item-qty">x${item.qty}</span>
+            <span class="item-price">${(item.numericPrice * item.qty).toFixed(2).replace('.', ',')} TL</span>
+          </div>
+        `).join('')}
+        
+        <div class="divider"></div>
+        
+        <div class="totals">
+          <div class="total-row">
+            <span>Ara Toplam:</span>
+            <span>${totals.subtotal} TL</span>
+          </div>
+          <div class="total-row">
+            <span>KDV (%8):</span>
+            <span>${totals.tax} TL</span>
+          </div>
+          <div class="total-row">
+            <span>İndirim:</span>
+            <span>${totals.discount} TL</span>
+          </div>
+          <div class="total-row grand-total">
+            <span>TOPLAM:</span>
+            <span>${totals.total} TL</span>
+          </div>
+        </div>
+        
+        <div class="payment-type">ÖDEME: ${paymentTypeText}</div>
+        
+        <div class="divider"></div>
+        
+        <div class="footer">
+          Teşekkürler! Yine bekleriz.<br>
+          Fiş No: ${Date.now().toString().slice(-6)}
+        </div>
+        
+        <div class="no-print" style="margin-top: 30px; text-align: center;">
+          <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer;">
+            Fişi Yazdır
+          </button>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    receiptWindow.document.write(receiptHTML);
+    receiptWindow.document.close();
+    
+    setCart([]);
+    setSelectedCartIndex(null);
+    setPaymentModal(null);
+  };
+
+  const getPaymentTitle = () => {
+    switch(paymentModal) {
+      case 'nakit': return 'Nakit Ödeme';
+      case 'kredi': return 'Kredi Kartı';
+      case 'acik': return 'Açık Hesap';
+      default: return '';
     }
   };
 
@@ -329,16 +477,55 @@ function App() {
               ) : (
                 cart.map((item, index) => {
                   const lineTotal = (item.numericPrice * item.qty).toFixed(2).replace('.', ',');
+                  const isSelected = selectedCartIndex === index;
                   return (
-                    <div className="cartRow compact" key={index}>
-                      <button className="mini deleteBtn small" type="button" onClick={() => removeFromCart(index)}>×</button>
+                    <div 
+                      className="cartRow compact" 
+                      key={index}
+                      onClick={() => selectCartRow(index)}
+                      style={{
+                        cursor: 'pointer',
+                        backgroundColor: isSelected ? '#e8f5ee' : 'transparent',
+                        border: isSelected ? '2px solid #4a8f6b' : '2px solid transparent',
+                        borderRadius: isSelected ? '8px' : '0',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <button 
+                        className="mini deleteBtn small" 
+                        type="button" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromCart(index);
+                        }}
+                      >
+                        ×
+                      </button>
                       <div className="cartNameCompact">
                         <div className="productNameCompact">{item.name}</div>
                       </div>
                       <div></div>
                       <div className="cartControls compact">
-                        <button className="mini small" type="button" onClick={() => changeQuantity(index, -1)}>−</button>
-                        <button className="mini small" type="button" onClick={() => changeQuantity(index, 1)}>＋</button>
+                        <button 
+                          className="mini small" 
+                          type="button" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            changeQuantity(index, -1);
+                          }}
+                        >
+                          −
+                        </button>
+                        <button 
+                          className="mini small" 
+                          type="button" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            changeQuantity(index, 1);
+                          }}
+                        >
+                          ＋
+                        </button>
                       </div>
                       <div className="cartCalc compact">
                         <div className="calc small">{item.qty} × {item.price}</div>
@@ -355,6 +542,11 @@ function App() {
               <div className="cartItemCount">
                 <span className="itemCountLabel">Sepetteki Ürünler:</span>
                 <span className="itemCountValue">{totals.totalItems} adet</span>
+                {selectedCartIndex !== null && (
+                  <span style={{ marginLeft: 12, color: '#4a8f6b', fontWeight: 600 }}>
+                    (Satır {selectedCartIndex + 1} seçili)
+                  </span>
+                )}
               </div>
             )}
 
@@ -365,17 +557,43 @@ function App() {
                 <span className="barcodePict" aria-hidden="true">▮▯▮▯</span>
               </div>
               <button className="softBtn" type="button">Fiyat Gör</button>
-              <button className="softBtn softDanger" type="button">Satır Sil</button>
+              <button 
+                className="softBtn softDanger" 
+                type="button"
+                onClick={handleDeleteRow}
+                disabled={selectedCartIndex === null}
+                style={{
+                  opacity: selectedCartIndex === null ? 0.5 : 1,
+                  cursor: selectedCartIndex === null ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Satır Sil
+              </button>
             </div>
 
             <div className="payRow">
-              <button className="payBtn cash" type="button">
-                <span className="payIcon" aria-hidden="true">📷</span> Nakit
+              <button 
+                className="payBtn cash" 
+                type="button"
+                onClick={() => openPaymentModal('nakit')}
+                disabled={cart.length === 0}
+              >
+                <span className="payIcon" aria-hidden="true">💵</span> Nakit
               </button>
-              <button className="payBtn card" type="button">
+              <button 
+                className="payBtn card" 
+                type="button"
+                onClick={() => openPaymentModal('kredi')}
+                disabled={cart.length === 0}
+              >
                 <span className="payIcon" aria-hidden="true">💳</span> K. Kartı
               </button>
-              <button className="payBtn open" type="button">
+              <button 
+                className="payBtn open" 
+                type="button"
+                onClick={() => openPaymentModal('acik')}
+                disabled={cart.length === 0}
+              >
                 <span className="payIcon" aria-hidden="true">🧾</span> Açık Hesap
               </button>
               <button className="payBtn change" type="button">
@@ -457,6 +675,13 @@ function App() {
           <div className="bottomBar">
             <button type="button">F3 - Fiş İptal</button>
             <button type="button">F9 - Ödeme Al</button>
+            <button 
+              type="button" 
+              onClick={handlePriceUpdate}
+              style={{ background: '#4a8f6b', color: 'white', fontWeight: 'bold' }}
+            >
+              💰 Fiyat Güncelle
+            </button>
             <button type="button">Stok Seç</button>
             <button type="button">Raporlar</button>
           </div>
@@ -547,6 +772,140 @@ function App() {
                 }}
               >
                 Sepete Ekle ✓
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Ödeme Fiş Modalı */}
+      {paymentModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100,
+          padding: 20
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 12, width: '100%', maxWidth: 420,
+            maxHeight: '90vh', overflow: 'auto',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column'
+          }}>
+            {/* Modal Header - Çarpı Butonu */}
+            <div style={{
+              padding: '20px 24px', borderBottom: '1px solid #e5e5e5',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: '#2d4b45'
+            }}>
+              <div style={{ color: '#fff', fontSize: 18, fontWeight: 800 }}>
+                {getPaymentTitle()}
+              </div>
+              <button
+                onClick={closePaymentModal}
+                style={{
+                  background: 'none', border: 'none', color: '#fff', fontSize: 28,
+                  cursor: 'pointer', padding: '0 4px', lineHeight: 1
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Fiş Görünümü */}
+            <div style={{
+              padding: 24, background: '#f8f9fa', fontFamily: '"Courier New", monospace',
+              borderBottom: '1px solid #e5e5e5'
+            }}>
+              <div style={{
+                background: '#fff', padding: 20, borderRadius: 8,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                border: '1px dashed #ccc'
+              }}>
+                {/* Fiş Header */}
+                <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                  <div style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 4 }}>{storeName}</div>
+                  <div style={{ fontSize: 12, color: '#666' }}>
+                    {now.toLocaleString('tr-TR')}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>
+                    Fiş No: {Date.now().toString().slice(-6)}
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px dashed #000', borderBottom: '1px dashed #000', padding: '12px 0' }}>
+                  {cart.map((item, idx) => (
+                    <div key={idx} style={{
+                      display: 'flex', justifyContent: 'space-between',
+                      fontSize: 13, margin: '6px 0', lineHeight: 1.4
+                    }}>
+                      <span style={{ flex: 1 }}>{item.name}</span>
+                      <span style={{ margin: '0 8px' }}>x{item.qty}</span>
+                      <span style={{ textAlign: 'right', minWidth: 70 }}>
+                        {(item.numericPrice * item.qty).toFixed(2).replace('.', ',')} TL
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Fiş Totals */}
+                <div style={{ marginTop: 16, fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
+                    <span>Ara Toplam:</span>
+                    <span>{totals.subtotal} TL</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
+                    <span>KDV (%8):</span>
+                    <span>{totals.tax} TL</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
+                    <span>İndirim:</span>
+                    <span>{totals.discount} TL</span>
+                  </div>
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between',
+                    margin: '12px 0 0 0', paddingTop: 12,
+                    borderTop: '2px solid #000', fontSize: 16, fontWeight: 'bold'
+                  }}>
+                    <span>TOPLAM:</span>
+                    <span>{totals.total} TL</span>
+                  </div>
+                </div>
+
+                <div style={{
+                  textAlign: 'center', marginTop: 16, paddingTop: 12,
+                  borderTop: '1px dashed #000', fontWeight: 'bold', fontSize: 14,
+                  color: '#2d4b45'
+                }}>
+                  ÖDEME: {paymentModal === 'nakit' ? 'NAKİT' : paymentModal === 'kredi' ? 'KREDİ KARTI' : 'AÇIK HESAP'}
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: '#666' }}>
+                  Teşekkürler! Yine bekleriz.
+                </div>
+              </div>
+            </div>
+
+            {/* Alt Buton - Fiş Çıktısı Al */}
+            <div style={{
+              padding: '20px 24px', background: '#fff'
+            }}>
+              <button
+                onClick={printReceipt}
+                style={{
+                  width: '100%', padding: '16px 20px', borderRadius: 10, border: 'none',
+                  background: '#2d4b45', color: '#fff', fontSize: 16,
+                  fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s',
+                  boxShadow: '0 4px 12px rgba(45,75,69,0.3)'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = '#1f3531';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = '#2d4b45';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                🖨️ Fiş Çıktısı Al
               </button>
             </div>
           </div>
