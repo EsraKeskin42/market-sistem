@@ -28,13 +28,9 @@ function App() {
   const [now, setNow] = useState(() => new Date());
   const [cart, setCart] = useState<CartItem[]>([]);
   
-  // Seçili satır indeksi (satır sil için)
   const [selectedCartIndex, setSelectedCartIndex] = useState<number | null>(null);
-
-  // Ödeme modal state
   const [paymentModal, setPaymentModal] = useState<PaymentType>(null);
 
-  // Tartı modal state'leri
   const weightCategories = ['meyve', 'sebze'];
   const [scaleModal, setScaleModal] = useState<{
     product: { name: string; price: string; art: string };
@@ -284,13 +280,12 @@ function App() {
     setPaymentModal(null);
   };
 
-  const handlePriceUpdate = () => {
-    // Tüm ürünleri localStorage'a kaydet ve fiyat güncelleme sayfasına git
+  const handleProductUpdate = () => {
     const allProductsData = Object.entries(productsByCategory).flatMap(([category, products]) =>
       products.map(p => ({ ...p, category }))
     );
     localStorage.setItem('products_data', JSON.stringify(allProductsData));
-    navigate('/price-update');
+    navigate('/product-update');
   };
 
   const handleReports = () => {
@@ -681,10 +676,10 @@ function App() {
             <button type="button">F9 - Ödeme Al</button>
             <button 
               type="button" 
-              onClick={handlePriceUpdate}
+              onClick={() => navigate('/product-update')}
               style={{ background: '#4a8f6b', color: 'white', fontWeight: 'bold' }}
             >
-              💰 Fiyat Güncelle
+              📝 Ürün Güncelle
             </button>
             <button 
               type="button"
@@ -800,7 +795,6 @@ function App() {
             maxHeight: '90vh', overflow: 'auto',
             boxShadow: '0 20px 60px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column'
           }}>
-            {/* Modal Header - Çarpı Butonu */}
             <div style={{
               padding: '20px 24px', borderBottom: '1px solid #e5e5e5',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -820,7 +814,6 @@ function App() {
               </button>
             </div>
 
-            {/* Fiş Görünümü */}
             <div style={{
               padding: 24, background: '#f8f9fa', fontFamily: '"Courier New", monospace',
               borderBottom: '1px solid #e5e5e5'
@@ -830,7 +823,6 @@ function App() {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 border: '1px dashed #ccc'
               }}>
-                {/* Fiş Header */}
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
                   <div style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 4 }}>{storeName}</div>
                   <div style={{ fontSize: 12, color: '#666' }}>
@@ -856,7 +848,6 @@ function App() {
                   ))}
                 </div>
 
-                {/* Fiş Totals */}
                 <div style={{ marginTop: 16, fontSize: 13 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', margin: '4px 0' }}>
                     <span>Ara Toplam:</span>
@@ -894,7 +885,6 @@ function App() {
               </div>
             </div>
 
-            {/* Alt Buton - Fiş Çıktısı Al */}
             <div style={{
               padding: '20px 24px', background: '#fff'
             }}>
