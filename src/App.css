@@ -138,21 +138,29 @@ body,
   color: var(--muted, #8a8278);
 }
 
-/* Arama / keypad satırı */
-.searchRow {
+/* ═══════════════════════════════════════════════════════════════
+   YENİ TUŞ TAKIMI DÜZENİ - 3 SIRA + ADET/C/ENTER ALT SATIR
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Ana konteyner: Arama + Tuş Takımı */
+.searchKeypadRow {
   display: grid;
-  grid-template-columns: 1fr 240px 88px;
+  grid-template-rows: auto auto;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 12px;
   background: linear-gradient(#f5f0e8, #efe8dc);
   border: 1px solid var(--stroke, #d9d3c8);
   border-radius: 14px;
-  align-items: center;
   min-width: 0;
   overflow: hidden;
 }
 
-.field {
+/* Ürün arama bölümü */
+.searchSection {
+  min-width: 0;
+}
+
+.searchSection .field {
   display: grid;
   grid-template-rows: auto auto;
   gap: 6px;
@@ -166,39 +174,158 @@ body,
 }
 
 .fieldInput {
-  height: 40px;
+  height: 44px;
   border-radius: 10px;
   border: 1px solid var(--stroke, #d9d3c8);
   background: #ffffff;
   padding: 0 12px;
   outline: none;
   width: 100%;
+  font-size: 14px;
 }
 
-.keypad {
+/* Tuş takımı bölümü */
+.keypadSection {
+  min-width: 0;
+}
+
+/* 3 sıralı tuş takımı konteyneri (2 üst sıra sayı tuşları) */
+.keypadThreeRow {
   display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* Her bir tuş sırası */
+.keypadRow {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+/* 5 tuşlu sıra (6-7-8-9-0) - ortada hizalı */
+.keypadRow.fiveKeys {
   grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  align-content: center;
+  padding: 0 28px; /* Kenarlardan boşluk, 6 tuşlu sırayla hizalama */
 }
 
-.keypad button {
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid var(--stroke, #d9d3c8);
-  background: #f4efe6;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.enterBtn {
-  height: 44px;
+/* Tuş butonları - Yeni stil */
+.keypadBtn {
+  height: 48px;
   border-radius: 12px;
   border: 1px solid var(--stroke, #d9d3c8);
-  background: #f0ece4;
-  font-weight: 700;
+  background: #f4efe6;
+  font-weight: 800;
+  font-size: 22px;
   cursor: pointer;
-  align-self: end;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2b2823;
+}
+
+.keypadBtn:hover {
+  background: #e8e4df;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.keypadBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Nokta (.) butonu */
+.dotBtn {
+  background: #e3f2fd !important;
+  color: #1976d2 !important;
+  font-weight: 900 !important;
+  font-size: 28px !important;
+}
+
+.dotBtn:hover {
+  background: #bbdefb !important;
+}
+
+/* C (Clear) butonu */
+.clearBtn {
+  background: #ffebee !important;
+  color: #c62828 !important;
+  font-weight: 900 !important;
+}
+
+.clearBtn:hover {
+  background: #ffcdd2 !important;
+}
+
+/* Enter butonu */
+.enterBtn {
+  background: #c8e6c9 !important;
+  color: #2d4b45 !important;
+  font-weight: 900 !important;
+  font-size: 24px !important;
+}
+
+.enterBtn:hover {
+  background: #a5d6a7 !important;
+}
+
+/* Orta boy C ve Enter butonları */
+.keypadBtn.medium {
+  height: 44px;
+  font-size: 20px;
+}
+
+/* Alt satır: Adet + C + Enter */
+.bottomKeypadRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0 0 0;
+  border-top: 1px solid var(--stroke, #d9d3c8);
+}
+
+/* Kompakt adet gösterimi */
+.qtyDisplayCompact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 2px solid #4a8f6b;
+  height: 44px;
+}
+
+.qtyLabelSmall {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6a655d;
+}
+
+.qtyValueCompact {
+  font-size: 22px;
+  font-weight: 900;
+  color: #2d4b45;
+  min-width: 50px;
+  text-align: center;
+}
+
+/* ESKİ TUŞ TAKIMI STİLLERİ - KALDIRILDI/YERİNE YENİLERİ KONULDU */
+.keypad {
+  display: none; /* Eski tuş takımı gizlendi */
+}
+
+.quantityDisplay {
+  display: none; /* Eski adet gösterimi gizlendi */
+}
+
+.quantityDisplayRow {
+  display: none; /* Eski adet satırı gizlendi */
 }
 
 /* ====================== SEPET GÜNCELLEMELERİ ====================== */
@@ -217,22 +344,29 @@ body,
 }
 
 .cartHead {
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: #f4efe6;
   border-bottom: 1px solid var(--stroke, #d9d3c8);
   flex-shrink: 0;
 }
 
-/* Başlık sütunları */
+/* Başlık sütunları - DÜZGÜN HİZALAMA */
 .cartCols {
   display: grid;
-  grid-template-columns: 40px 1fr 60px 80px 90px;
-  gap: 8px;
+  grid-template-columns: 50px 1fr 80px 100px 100px;
+  gap: 10px;
   font-size: 13px;
   color: #6a655d;
   font-weight: 800;
   align-items: center;
+  text-align: center;
 }
+
+.cartCols span:nth-child(1) { text-align: center; } /* Sil */
+.cartCols span:nth-child(2) { text-align: left; }   /* Ürün */
+.cartCols span:nth-child(3) { text-align: center; }   /* Adet */
+.cartCols span:nth-child(4) { text-align: right; }    /* Fiyat */
+.cartCols span:nth-child(5) { text-align: right; }    /* Toplam */
 
 /* Kaydırılabilir ürün listesi */
 .cartRows {
@@ -243,18 +377,22 @@ body,
   min-height: 0;
 }
 
-/* KOMPAKT SEPET SATIRI - Küçük boyut */
+/* KOMPAKT SEPET SATIRI - DÜZGÜN HİZALAMA */
 .cartRow.compact {
   display: grid;
-  grid-template-columns: 40px 1fr 0px 60px 90px;
-  gap: 8px;
-  padding: 8px 10px;
+  grid-template-columns: 50px 1fr 80px 100px 100px;
+  gap: 10px;
+  padding: 10px 12px;
   border-radius: 10px;
   background: #faf8f4;
   border: 1px solid #eee7dc;
   margin-bottom: 6px;
   align-items: center;
-  min-height: 50px;
+}
+
+/* Sil butonu hücresi */
+.cartRow.compact > button {
+  justify-self: center;
 }
 
 /* Sadece ürün ismi - ikon yok */
@@ -267,7 +405,7 @@ body,
 
 /* Kompakt ürün ismi */
 .productNameCompact {
-  font-size: 1rem;
+  font-size: 14px;
   font-weight: 700;
   color: #2b2823;
   text-align: left;
@@ -279,7 +417,7 @@ body,
   white-space: nowrap;
 }
 
-/* Kompakt adet kontrol butonları */
+/* Adet kontrol butonları - ortada */
 .cartControls.compact {
   display: flex;
   flex-direction: column;
@@ -289,14 +427,14 @@ body,
 }
 
 .cartControls.compact .mini.small {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   border: 1px solid #d9d3c8;
   background: #f3efe7;
   cursor: pointer;
   font-weight: 900;
-  font-size: 1rem;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -308,7 +446,7 @@ body,
   transform: scale(1.05);
 }
 
-/* Kompakt fiyat bölümü */
+/* Fiyat bölümü - sağa hizalı */
 .cartCalc.compact {
   display: flex;
   flex-direction: column;
@@ -318,32 +456,32 @@ body,
 }
 
 .calc.small {
-  font-size: 0.85rem;
+  font-size: 12px;
   color: #6a655d;
   font-weight: 700;
 }
 
 .sum.small {
-  font-size: 1rem;
+  font-size: 15px;
   font-weight: 900;
   color: #2d4b45;
 }
 
 .try.small {
-  font-size: 0.9rem;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 700;
   color: #8a8278;
 }
 
-/* Kompakt sil butonu */
+/* Sil butonu */
 .deleteBtn.mini.small {
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #ffebee;
   color: #c62828;
   border: 1px solid #ffcdd2;
-  font-size: 1.2rem;
+  font-size: 20px;
   font-weight: 900;
   cursor: pointer;
   display: flex;
@@ -674,52 +812,6 @@ body,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* Keypad ve Adet Girişi */
-.searchRow {
-  display: grid;
-  grid-template-columns: 1fr 260px 110px;
-  gap: 10px;
-  align-items: end;
-}
-
-.quantityDisplay {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 4px;
-  text-align: center;
-}
-
-.qtyValue {
-  height: 44px;
-  background: #ffffff;
-  border: 2px solid #4a8f6b;
-  border-radius: 10px;
-  font-size: 20px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #2d4b45;
-}
-
-.keypad {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-}
-
-.keypad button {
-  height: 38px;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.enterBtn {
-  background: #c8e6c8 !important;
-  font-weight: 800;
-  grid-column: span 2;
 }
 
 /* Boş ürün mesajı */

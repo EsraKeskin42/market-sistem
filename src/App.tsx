@@ -267,6 +267,7 @@ function App() {
       }
       addToCart(activeProducts[0], qty);
     } else {
+      // Nokta veya rakam ekle
       setQuantityInput(prev => (prev + key).slice(0, 5));
     }
   };
@@ -428,36 +429,85 @@ function App() {
             </button>
           </div>
 
-          <div className="searchRow">
-            <label className="field">
-              <div className="fieldLabel">Ürün</div>
-              <input
-                className="fieldInput"
-                placeholder="Ürün ara..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </label>
-
-            <div className="keypad">
-              {['1','2','3','4','5','6','7','8','9','0','C','Enter'].map(key => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleKeypad(key)}
-                  className={key === 'Enter' ? 'enterBtn' : ''}
-                >
-                  {key}
-                </button>
-              ))}
+          {/* YENİ DÜZEN: Arama + Tuş Takımı (3 sıra) + Adet/C/Enter */}
+          <div className="searchKeypadRow">
+            {/* Ürün arama barı */}
+            <div className="searchSection">
+              <label className="field">
+                <div className="fieldLabel">Ürün Ara</div>
+                <input
+                  className="fieldInput"
+                  placeholder="Ürün adı veya barkod..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </label>
             </div>
 
-            <div className="quantityDisplay">
-              <div className="fieldLabel">Adet</div>
-              <div className="qtyValue">{quantityInput || '—'}</div>
+            {/* Tuş takımı - 3 sıra */}
+            <div className="keypadSection">
+              <div className="fieldLabel">Adet Girişi</div>
+              <div className="keypadThreeRow">
+                {/* 1. Sıra: Nokta + 1-2-3-4-5 (6 tuş) */}
+                <div className="keypadRow">
+                  <button
+                    type="button"
+                    onClick={() => handleKeypad('.')}
+                    className="keypadBtn dotBtn"
+                  >
+                    .
+                  </button>
+                  {['1','2','3','4','5'].map(key => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleKeypad(key)}
+                      className="keypadBtn"
+                    >
+                      {key}
+                    </button>
+                  ))}
+                </div>
+                {/* 2. Sıra: 6-7-8-9-0 (5 tuş) */}
+                <div className="keypadRow fiveKeys">
+                  {['6','7','8','9','0'].map(key => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => handleKeypad(key)}
+                      className="keypadBtn"
+                    >
+                      {key}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Alt satır: Adet (kısa) + C + Enter */}
+              <div className="bottomKeypadRow">
+                <div className="qtyDisplayCompact">
+                  <span className="qtyLabelSmall">Adet:</span>
+                  <span className="qtyValueCompact">{quantityInput || '-'}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleKeypad('C')}
+                  className="keypadBtn clearBtn medium"
+                >
+                  C
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleKeypad('Enter')}
+                  className="keypadBtn enterBtn medium"
+                >
+                  ↵
+                </button>
+              </div>
             </div>
           </div>
 
+          {/* Sepet */}
           <div className="cart">
             <div className="cartHead">
               <div className="cartCols">
@@ -647,7 +697,6 @@ function App() {
             </div>
           </div>
 
-          {/* Total Bar - Sol paneldeki butonlarla aynı hizada */}
           <div className="totalBar">
             <div className="totalMid">
               <div className="totalTitle">TOPLAM ÖDENECEK:</div>
@@ -655,7 +704,6 @@ function App() {
             </div>
           </div>
 
-          {/* Bottom Bar - Sayfanın en altında sabit */}
           <div className="bottomBar">
             <button type="button">F3 - Fiş İptal</button>
             <button type="button">F9 - Ödeme Al</button>
