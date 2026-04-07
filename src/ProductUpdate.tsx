@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface Product {
+  id: string;
   name: string;
   price: string;
   art: string;
@@ -26,6 +27,26 @@ const CATEGORIES = [
   { id: 'temizlik', label: 'Temizlik', icon: '🧽' },
 ];
 
+// Türkçe karakterleri normalize eden fonksiyon
+const normalizeTurkish = (str: string): string => {
+  return str
+    .toLocaleLowerCase('tr-TR')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ı/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
+    .replace(/Ğ/g, 'G')
+    .replace(/Ü/g, 'U')
+    .replace(/Ş/g, 'S')
+    .replace(/I/g, 'I')
+    .replace(/İ/g, 'I')
+    .replace(/Ö/g, 'O')
+    .replace(/Ç/g, 'C')
+    .trim();
+};
+
 function ProductUpdate() {
   const navigate = useNavigate();
   const [products, setProducts] = useState<EditableProduct[]>([]);
@@ -48,8 +69,9 @@ function ProductUpdate() {
     const savedData = localStorage.getItem('products_data');
     if (savedData) {
       const parsed = JSON.parse(savedData);
-      setProducts(parsed.map((p: Product) => ({
+      setProducts(parsed.map((p: Product, idx: number) => ({
         ...p,
+        id: p.id || `product_${idx}_${Date.now()}`,
         newPrice: p.price.replace(' TL', ''),
         newName: p.name,
         newBarcode: p.barcode,
@@ -64,77 +86,89 @@ function ProductUpdate() {
     return cats;
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
-    return products.filter(p => {
-      const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.barcode.includes(searchTerm);
-      const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
+  // Filtrelenmiş ürünleri ve orijinal index'lerini tutan yapı - Türkçe karakter destekli
+  const filteredProductsWithIndex = useMemo(() => {
+    const normalizedSearchTerm = normalizeTurkish(searchTerm);
+    
+    return products
+      .map((p, originalIndex) => ({ product: p, originalIndex }))
+      .filter(({ product: p }) => {
+        const normalizedProductName = normalizeTurkish(p.name);
+        const normalizedBarcode = normalizeTurkish(p.barcode);
+        
+        const matchesSearch = normalizedProductName.includes(normalizedSearchTerm) ||
+                            normalizedBarcode.includes(normalizedSearchTerm);
+        const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+      });
   }, [products, searchTerm, selectedCategory]);
 
-  const handleEdit = (index: number) => {
+  const handleEdit = (originalIndex: number) => {
     setProducts(prev => {
       const updated = [...prev];
-      updated[index].isEditing = true;
+      updated[originalIndex].isEditing = true;
       return updated;
     });
   };
 
-  const handleSave = (index: number) => {
+  const handleSave = (originalIndex: number) => {
     setProducts(prev => {
       const updated = [...prev];
-      updated[index].isEditing = false;
+      updated[originalIndex].isEditing = false;
       // Değerleri güncelle
-      updated[index].price = updated[index].newPrice + ' TL';
-      updated[index].name = updated[index].newName;
-      updated[index].barcode = updated[index].newBarcode;
-      updated[index].art = updated[index].newArt;
+      updated[originalIndex].price = updated[originalIndex].newPrice + ' TL';
+      updated[originalIndex].name = updated[originalIndex].newName;
+      updated[originalIndex].barcode = updated[originalIndex].newBarcode;
+      updated[originalIndex].art = updated[originalIndex].newArt;
+      
+      // localStorage'a kaydet
+      const dataToSave = updated.map(p => ({
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        art: p.art,
+        barcode: p.barcode,
+        category: p.category
+      }));
+      localStorage.setItem('products_data', JSON.stringify(dataToSave));
+      
       return updated;
     });
-    
-    // localStorage'a kaydet
-    const dataToSave = products.map(p => ({
-      name: p.newName,
-      price: p.newPrice + ' TL',
-      art: p.newArt,
-      barcode: p.newBarcode,
-      category: p.category
-    }));
-    localStorage.setItem('products_data', JSON.stringify(dataToSave));
     
     setSaveMessage('✓ Değişiklikler kaydedildi!');
     setTimeout(() => setSaveMessage(''), 2000);
   };
 
-  const handleCancel = (index: number) => {
+  const handleCancel = (originalIndex: number) => {
     setProducts(prev => {
       const updated = [...prev];
-      updated[index].isEditing = false;
+      updated[originalIndex].isEditing = false;
       // Değerleri eski haline getir
-      updated[index].newPrice = updated[index].price.replace(' TL', '');
-      updated[index].newName = updated[index].name;
-      updated[index].newBarcode = updated[index].barcode;
-      updated[index].newArt = updated[index].art;
+      updated[originalIndex].newPrice = updated[originalIndex].price.replace(' TL', '');
+      updated[originalIndex].newName = updated[originalIndex].name;
+      updated[originalIndex].newBarcode = updated[originalIndex].barcode;
+      updated[originalIndex].newArt = updated[originalIndex].art;
       return updated;
     });
   };
 
-  const handleChange = (index: number, field: keyof EditableProduct, value: string) => {
+  const handleChange = (originalIndex: number, field: keyof EditableProduct, value: string) => {
     setProducts(prev => {
       const updated = [...prev];
-      (updated[index] as any)[field] = value;
+      (updated[originalIndex] as any)[field] = value;
       return updated;
     });
   };
 
   // ÜRÜN SİLME
-  const handleDelete = (index: number) => {
-    if (confirm(`"${products[index].name}" ürününü silmek istediğinize emin misiniz?`)) {
+  const handleDelete = (originalIndex: number) => {
+    const productName = products[originalIndex]?.name || 'Bu ürün';
+    if (confirm(`"${productName}" ürününü silmek istediğinize emin misiniz?`)) {
       setProducts(prev => {
-        const updated = prev.filter((_, i) => i !== index);
+        const updated = prev.filter((_, i) => i !== originalIndex);
         // localStorage'a kaydet
         const dataToSave = updated.map(p => ({
+          id: p.id,
           name: p.name,
           price: p.price,
           art: p.art,
@@ -156,7 +190,10 @@ function ProductUpdate() {
       return;
     }
 
+    const newId = `product_${Date.now()}`;
+
     const productToAdd: EditableProduct = {
+      id: newId,
       name: newProduct.name,
       price: newProduct.price.includes('TL') ? newProduct.price : `${newProduct.price} TL`,
       art: newProduct.art || '📦',
@@ -174,6 +211,7 @@ function ProductUpdate() {
 
     // localStorage'a kaydet
     const dataToSave = updated.map(p => ({
+      id: p.id,
       name: p.name,
       price: p.price,
       art: p.art,
@@ -337,7 +375,7 @@ function ProductUpdate() {
             fontSize: 14,
             color: '#666'
           }}>
-            Toplam: <strong>{filteredProducts.length}</strong> ürün
+            Toplam: <strong>{filteredProductsWithIndex.length}</strong> ürün
           </div>
 
           {saveMessage && (
@@ -383,7 +421,7 @@ function ProductUpdate() {
           </div>
 
           <div style={{ maxHeight: 'calc(100vh - 350px)', overflowY: 'auto' }}>
-            {filteredProducts.length === 0 ? (
+            {filteredProductsWithIndex.length === 0 ? (
               <div style={{
                 padding: 60,
                 textAlign: 'center',
@@ -409,9 +447,9 @@ function ProductUpdate() {
                 </button>
               </div>
             ) : (
-              filteredProducts.map((product, index) => (
+              filteredProductsWithIndex.map(({ product, originalIndex }) => (
                 <div
-                  key={index}
+                  key={product.id}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '80px 2fr 1fr 1fr 1fr 180px',
@@ -429,7 +467,7 @@ function ProductUpdate() {
                       <input
                         type="text"
                         value={product.newArt}
-                        onChange={(e) => handleChange(index, 'newArt', e.target.value)}
+                        onChange={(e) => handleChange(originalIndex, 'newArt', e.target.value)}
                         style={{
                           width: 50,
                           height: 50,
@@ -463,7 +501,7 @@ function ProductUpdate() {
                       <input
                         type="text"
                         value={product.newName}
-                        onChange={(e) => handleChange(index, 'newName', e.target.value)}
+                        onChange={(e) => handleChange(originalIndex, 'newName', e.target.value)}
                         style={{
                           width: '100%',
                           padding: '8px 12px',
@@ -483,7 +521,7 @@ function ProductUpdate() {
                       <input
                         type="text"
                         value={product.newBarcode}
-                        onChange={(e) => handleChange(index, 'newBarcode', e.target.value)}
+                        onChange={(e) => handleChange(originalIndex, 'newBarcode', e.target.value)}
                         style={{
                           width: '100%',
                           padding: '8px 12px',
@@ -514,7 +552,7 @@ function ProductUpdate() {
                         <input
                           type="text"
                           value={product.newPrice}
-                          onChange={(e) => handleChange(index, 'newPrice', e.target.value)}
+                          onChange={(e) => handleChange(originalIndex, 'newPrice', e.target.value)}
                           style={{
                             width: 80,
                             padding: '8px 12px',
@@ -557,7 +595,7 @@ function ProductUpdate() {
                     {product.isEditing ? (
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
                         <button
-                          onClick={() => handleSave(index)}
+                          onClick={() => handleSave(originalIndex)}
                           style={{
                             background: '#4a8f6b',
                             color: 'white',
@@ -572,7 +610,7 @@ function ProductUpdate() {
                           ✓ Kaydet
                         </button>
                         <button
-                          onClick={() => handleCancel(index)}
+                          onClick={() => handleCancel(originalIndex)}
                           style={{
                             background: '#f5f5f5',
                             color: '#666',
@@ -589,7 +627,7 @@ function ProductUpdate() {
                     ) : (
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
                         <button
-                          onClick={() => handleEdit(index)}
+                          onClick={() => handleEdit(originalIndex)}
                           style={{
                             background: '#e3f2fd',
                             color: '#1976d2',
@@ -605,7 +643,7 @@ function ProductUpdate() {
                           ✏️ Düzenle
                         </button>
                         <button
-                          onClick={() => handleDelete(index)}
+                          onClick={() => handleDelete(originalIndex)}
                           style={{
                             background: '#ffebee',
                             color: '#c62828',

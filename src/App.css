@@ -480,6 +480,7 @@ body,
 /* ── SAĞ PANEL ────────────────────────────────────────────────── */
 .right {
   display: grid;
+  /* cats | productsWrap | totalBar | bottomBar */
   grid-template-rows: auto 1fr auto auto;
   gap: 10px;
   min-width: 0;
@@ -611,10 +612,10 @@ body,
   color: #2b2823;
 }
 
-/* Toplam bar */
+/* Toplam bar - Sol paneldeki butonlarla aynı hizada */
 .totalBar {
   display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
   align-items: center;
   padding: 10px 12px;
@@ -625,58 +626,12 @@ body,
   overflow: hidden;
 }
 
-.totalBar > div {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.totalLeft {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.barcodes {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.barcodeBox {
-  height: 34px;
-  flex: 1 1 80px;
-  min-width: 0;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  display: grid;
-  place-items: center;
-  font-weight: 900;
-  color: rgba(0, 0, 0, 0.55);
-}
-
-.subBtns {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.miniAction {
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.55);
-  cursor: pointer;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.totalMid {
+/* Sadece toplam ödenecek gösterimi */
+.totalBar .totalMid {
   display: grid;
   justify-items: center;
   gap: 4px;
+  width: 100%;
 }
 
 .totalTitle {
@@ -695,29 +650,10 @@ body,
   white-space: nowrap;
 }
 
-.totalRight .totals {
-  display: grid;
-  gap: 6px;
-  justify-items: end;
-  color: rgba(0, 0, 0, 0.55);
-  font-weight: 900;
-}
-
-.totalRight .totals div {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 10px;
-  align-items: baseline;
-}
-
-.totalRight b {
-  color: rgba(0, 0, 0, 0.6);
-}
-
-/* Alt buton çubuğu */
+/* Alt buton çubuğu - Sayfanın en altında */
 .bottomBar {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   padding: 10px 12px;
   background: #efe8dc;

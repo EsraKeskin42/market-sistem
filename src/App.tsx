@@ -611,6 +611,7 @@ function App() {
                   className={`cat ${active ? 'active' : ''}`}
                   type="button"
                   key={c.id}
+                  data-cat-id={c.id}
                   onClick={() => {
                     setActiveCategoryId(c.id);
                     setSearchTerm('');
@@ -646,31 +647,15 @@ function App() {
             </div>
           </div>
 
+          {/* Total Bar - Sol paneldeki butonlarla aynı hizada */}
           <div className="totalBar">
-            <div className="totalLeft">
-              <div className="barcodes">
-                <div className="barcodeBox" aria-hidden="true">▮▯▮▯▮▯</div>
-                <div className="barcodeBox" aria-hidden="true">▮▮▯▯▮▮</div>
-              </div>
-              <div className="subBtns">
-                <button className="miniAction" type="button">Ekran Resmi</button>
-                <button className="miniAction" type="button">İndirim</button>
-                <button className="miniAction" type="button">Bekleme</button>
-              </div>
-            </div>
             <div className="totalMid">
               <div className="totalTitle">TOPLAM ÖDENECEK:</div>
               <div className="totalValue">{totals.total} ₺</div>
             </div>
-            <div className="totalRight">
-              <div className="totals">
-                <div><span>Ara Toplam:</span><b>{totals.subtotal}</b></div>
-                <div><span>Toplam Kdv:</span><b>{totals.tax}</b></div>
-                <div><span>İndirim:</span><b>{totals.discount}</b></div>
-              </div>
-            </div>
           </div>
 
+          {/* Bottom Bar - Sayfanın en altında sabit */}
           <div className="bottomBar">
             <button type="button">F3 - Fiş İptal</button>
             <button type="button">F9 - Ödeme Al</button>
