@@ -845,3 +845,13 @@ body,
   border: 2px dashed #ffa000;
   color: #e65100;
 }
+
+/* İptal butonu için ek stiller */
+.bottomBar button:first-child {
+  transition: all 0.2s ease;
+}
+
+.bottomBar button:first-child:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}

@@ -223,13 +223,22 @@ function App() {
     }
   };
 
+  // DÜZELTİLMİŞ: changeQuantity fonksiyonu - immutable update kullanıyor
   const changeQuantity = (index: number, delta: number) => {
     setCart(prev => {
-      const newCart = [...prev];
-      const newQty = newCart[index].qty + delta;
-      if (newQty < 1) return newCart.filter((_, i) => i !== index);
-      newCart[index].qty = newQty;
-      return newCart;
+      const item = prev[index];
+      if (!item) return prev;
+      
+      const newQty = item.qty + delta;
+      if (newQty < 1) {
+        // Miktar 0 ve altına düşerse ürünü sepetten kaldır
+        return prev.filter((_, i) => i !== index);
+      }
+      
+      // Immutable update: map kullanarak yeni array oluştur
+      return prev.map((item, i) => 
+        i === index ? { ...item, qty: newQty } : item
+      );
     });
   };
 
@@ -240,6 +249,15 @@ function App() {
   const handleDeleteRow = () => {
     if (selectedCartIndex !== null && selectedCartIndex >= 0 && selectedCartIndex < cart.length) {
       removeFromCart(selectedCartIndex);
+    }
+  };
+
+  // İPTAL butonu - sepetteki tüm ürünleri siler
+  const handleCancelCart = () => {
+    if (cart.length === 0) return;
+    if (window.confirm('Sepetteki tüm ürünler silinecek. Emin misiniz?')) {
+      setCart([]);
+      setSelectedCartIndex(null);
     }
   };
 
@@ -572,6 +590,7 @@ function App() {
                         className="mini deleteBtn small" 
                         type="button" 
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           removeFromCart(index);
                         }}
@@ -587,6 +606,7 @@ function App() {
                           className="mini small" 
                           type="button" 
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             changeQuantity(index, -1);
                           }}
@@ -597,6 +617,7 @@ function App() {
                           className="mini small" 
                           type="button" 
                           onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             changeQuantity(index, 1);
                           }}
@@ -751,7 +772,20 @@ function App() {
           </div>
 
           <div className="bottomBar">
-            <button type="button">F3 - Fiş İptal</button>
+            <button 
+              type="button"
+              onClick={handleCancelCart}
+              disabled={cart.length === 0}
+              style={{ 
+                background: cart.length === 0 ? '#ccc' : '#dc3545', 
+                color: 'white', 
+                fontWeight: 'bold',
+                opacity: cart.length === 0 ? 0.5 : 1,
+                cursor: cart.length === 0 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              ❌ İptal
+            </button>
             <button type="button">F9 - Ödeme Al</button>
             <button 
               type="button" 
