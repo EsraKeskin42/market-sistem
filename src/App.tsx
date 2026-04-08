@@ -28,6 +28,9 @@ function App() {
   const [now, setNow] = useState(() => new Date());
   const [cart, setCart] = useState<CartItem[]>([]);
   
+  // Bekletilmiş sepet state'i
+  const [heldCart, setHeldCart] = useState<CartItem[] | null>(null);
+  
   const [selectedCartIndex, setSelectedCartIndex] = useState<number | null>(null);
   const [paymentModal, setPaymentModal] = useState<PaymentType>(null);
 
@@ -240,6 +243,24 @@ function App() {
     }
   };
 
+  // Beklet fonksiyonu - sepeti beklet veya geri yükle
+  const handleHoldCart = () => {
+    if (heldCart === null) {
+      // Sepeti beklet
+      if (cart.length > 0) {
+        setHeldCart([...cart]);
+        setCart([]);
+        setSelectedCartIndex(null);
+      }
+    } else {
+      // Bekletilen sepeti geri yükle
+      setCart(heldCart);
+      setHeldCart(null);
+      setSelectedCartIndex(null);
+    }
+  };
+
+  // Mevcut sepet toplamı (SOL PANEL - Sepetteki ürünler)
   const totals = useMemo(() => {
     const subtotal = cart.reduce((sum, item) => sum + item.numericPrice * item.qty, 0);
     const tax = subtotal * 0.08;
@@ -254,6 +275,21 @@ function App() {
     };
   }, [cart]);
 
+  // Bekletilen sepet toplamı (SAĞ PANEL - Bekletilen ürünler)
+  const heldTotals = useMemo(() => {
+    if (!heldCart || heldCart.length === 0) return null;
+    const subtotal = heldCart.reduce((sum, item) => sum + item.numericPrice * item.qty, 0);
+    const tax = subtotal * 0.08;
+    const total = subtotal + tax;
+
+    return {
+      subtotal: subtotal.toFixed(2).replace('.', ','),
+      tax: tax.toFixed(2).replace('.', ','),
+      total: total.toFixed(2).replace('.', ','),
+      totalItems: heldCart.reduce((sum, item) => sum + item.qty, 0)
+    };
+  }, [heldCart]);
+
   const handleKeypad = (key: string) => {
     if (key === 'C') {
       setQuantityInput('');
@@ -267,7 +303,6 @@ function App() {
       }
       addToCart(activeProducts[0], qty);
     } else {
-      // Nokta veya rakam ekle
       setQuantityInput(prev => (prev + key).slice(0, 5));
     }
   };
@@ -429,9 +464,7 @@ function App() {
             </button>
           </div>
 
-          {/* YENİ DÜZEN: Arama + Tuş Takımı (3 sıra) + Adet/C/Enter */}
           <div className="searchKeypadRow">
-            {/* Ürün arama barı */}
             <div className="searchSection">
               <label className="field">
                 <div className="fieldLabel">Ürün Ara</div>
@@ -444,11 +477,9 @@ function App() {
               </label>
             </div>
 
-            {/* Tuş takımı - 3 sıra */}
             <div className="keypadSection">
               <div className="fieldLabel">Adet Girişi</div>
               <div className="keypadThreeRow">
-                {/* 1. Sıra: Nokta + 1-2-3-4-5 (6 tuş) */}
                 <div className="keypadRow">
                   <button
                     type="button"
@@ -468,7 +499,6 @@ function App() {
                     </button>
                   ))}
                 </div>
-                {/* 2. Sıra: 6-7-8-9-0 (5 tuş) */}
                 <div className="keypadRow fiveKeys">
                   {['6','7','8','9','0'].map(key => (
                     <button
@@ -483,7 +513,6 @@ function App() {
                 </div>
               </div>
               
-              {/* Alt satır: Adet (kısa) + C + Enter */}
               <div className="bottomKeypadRow">
                 <div className="qtyDisplayCompact">
                   <span className="qtyLabelSmall">Adet:</span>
@@ -507,7 +536,6 @@ function App() {
             </div>
           </div>
 
-          {/* Sepet */}
           <div className="cart">
             <div className="cartHead">
               <div className="cartCols">
@@ -520,8 +548,8 @@ function App() {
             </div>
             <div className="cartRows">
               {cart.length === 0 ? (
-                <div className="emptyCartMessage">
-                  Sepetiniz boş. Ürün eklemek için kategorilerden bir ürün seçin.
+                <div className={`emptyCartMessage ${heldCart ? 'holding' : ''}`}>
+                  {heldCart ? 'Bekletilen sepet geri yüklenmeyi bekliyor. "Beklet" butonuna basarak geri yükleyebilirsiniz.' : 'Sepetiniz boş. Ürün eklemek için kategorilerden bir ürün seçin.'}
                 </div>
               ) : (
                 cart.map((item, index) => {
@@ -600,12 +628,19 @@ function App() {
             )}
 
             <div className="barcodeRow">
-              <div className="barcodeInput">
-                <span className="barcodeIcon" aria-hidden="true">▥</span>
-                <input placeholder="Barkod Okutunuz." />
-                <span className="barcodePict" aria-hidden="true">▮▯▮▯</span>
+              <div className="totalDisplayBox">
+                <span className="totalDisplayLabel">TOPLAM ÖDENECEK:</span>
+                <span className="totalDisplayValue">{totals.total} ₺</span>
               </div>
-              <button className="softBtn" type="button">Fiyat Gör</button>
+              
+              <button 
+                className={`softBtn holdBtn ${heldCart ? 'active' : ''}`} 
+                type="button"
+                onClick={handleHoldCart}
+              >
+                {heldCart ? '⏳ Geri Yükle' : '⏸️ Beklet'}
+              </button>
+              
               <button 
                 className="softBtn softDanger" 
                 type="button"
@@ -697,10 +732,21 @@ function App() {
             </div>
           </div>
 
+          {/* SAĞ PANEL: Sadece bekletilen ürünlerin toplamı gösterilir */}
           <div className="totalBar">
             <div className="totalMid">
-              <div className="totalTitle">TOPLAM ÖDENECEK:</div>
-              <div className="totalValue">{totals.total} ₺</div>
+              {heldTotals ? (
+                <>
+                  <div className="totalTitle">BEKLETİLEN TOPLAM:</div>
+                  <div className="totalValue held">{heldTotals.total} ₺</div>
+                  <div className="heldItemCount">({heldTotals.totalItems} ürün)</div>
+                </>
+              ) : (
+                <>
+                  <div className="totalTitle">BEKLETİLEN YOK</div>
+                  <div className="totalValue empty">0,00 ₺</div>
+                </>
+              )}
             </div>
           </div>
 
@@ -726,7 +772,6 @@ function App() {
         </main>
       </div>
 
-      {/* Tartı Modalı */}
       {scaleModal && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
@@ -816,7 +861,6 @@ function App() {
         </div>
       )}
 
-      {/* Ödeme Fiş Modalı */}
       {paymentModal && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',

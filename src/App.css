@@ -7,7 +7,6 @@
   padding: 0;
 }
 
-/* BU KISIM KRİTİK: html/body/#root yükseklik zinciri */
 html,
 body,
 #root {
@@ -27,8 +26,6 @@ body,
 .posGrid {
   height: 100%;
   display: grid;
-  /* Sol panel sabit 520px, sağ panel kalan alanı alır. 
-     minmax(0,1fr) taşmayı önler */
   grid-template-columns: 520px minmax(0, 1fr);
   column-gap: 14px;
   padding: 10px 12px;
@@ -53,12 +50,10 @@ body,
   display: grid;
   grid-template-rows: auto auto 1fr;
   gap: 10px;
-  /* Sütun genişliğinden taşmayı engelle */
   max-width: 100%;
   overflow: hidden;
 }
 
-/* Marka / başlık satırı */
 .brandRow {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -68,7 +63,6 @@ body,
   background: linear-gradient(#f5f0e8, #efe8dc);
   border: 1px solid var(--stroke, #d9d3c8);
   border-radius: 14px;
-  /* Taşmayı kes */
   min-width: 0;
   overflow: hidden;
 }
@@ -78,7 +72,6 @@ body,
   letter-spacing: 0.8px;
   font-size: 34px;
   color: #2d4b45;
-  /* Uzun şehir isimlerinde kırılsın */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -142,7 +135,6 @@ body,
    YENİ TUŞ TAKIMI DÜZENİ - 3 SIRA + ADET/C/ENTER ALT SATIR
    ═══════════════════════════════════════════════════════════════ */
 
-/* Ana konteyner: Arama + Tuş Takımı */
 .searchKeypadRow {
   display: grid;
   grid-template-rows: auto auto;
@@ -155,7 +147,6 @@ body,
   overflow: hidden;
 }
 
-/* Ürün arama bölümü */
 .searchSection {
   min-width: 0;
 }
@@ -184,12 +175,10 @@ body,
   font-size: 14px;
 }
 
-/* Tuş takımı bölümü */
 .keypadSection {
   min-width: 0;
 }
 
-/* 3 sıralı tuş takımı konteyneri (2 üst sıra sayı tuşları) */
 .keypadThreeRow {
   display: grid;
   grid-template-rows: repeat(2, 1fr);
@@ -197,20 +186,17 @@ body,
   margin-bottom: 8px;
 }
 
-/* Her bir tuş sırası */
 .keypadRow {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
 }
 
-/* 5 tuşlu sıra (6-7-8-9-0) - ortada hizalı */
 .keypadRow.fiveKeys {
   grid-template-columns: repeat(5, 1fr);
-  padding: 0 28px; /* Kenarlardan boşluk, 6 tuşlu sırayla hizalama */
+  padding: 0 28px;
 }
 
-/* Tuş butonları - Yeni stil */
 .keypadBtn {
   height: 48px;
   border-radius: 12px;
@@ -237,7 +223,6 @@ body,
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Nokta (.) butonu */
 .dotBtn {
   background: #e3f2fd !important;
   color: #1976d2 !important;
@@ -249,7 +234,6 @@ body,
   background: #bbdefb !important;
 }
 
-/* C (Clear) butonu */
 .clearBtn {
   background: #ffebee !important;
   color: #c62828 !important;
@@ -260,7 +244,6 @@ body,
   background: #ffcdd2 !important;
 }
 
-/* Enter butonu */
 .enterBtn {
   background: #c8e6c9 !important;
   color: #2d4b45 !important;
@@ -272,13 +255,11 @@ body,
   background: #a5d6a7 !important;
 }
 
-/* Orta boy C ve Enter butonları */
 .keypadBtn.medium {
   height: 44px;
   font-size: 20px;
 }
 
-/* Alt satır: Adet + C + Enter */
 .bottomKeypadRow {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr;
@@ -288,7 +269,6 @@ body,
   border-top: 1px solid var(--stroke, #d9d3c8);
 }
 
-/* Kompakt adet gösterimi */
 .qtyDisplayCompact {
   display: flex;
   align-items: center;
@@ -315,31 +295,27 @@ body,
   text-align: center;
 }
 
-/* ESKİ TUŞ TAKIMI STİLLERİ - KALDIRILDI/YERİNE YENİLERİ KONULDU */
 .keypad {
-  display: none; /* Eski tuş takımı gizlendi */
+  display: none;
 }
 
 .quantityDisplay {
-  display: none; /* Eski adet gösterimi gizlendi */
+  display: none;
 }
 
 .quantityDisplayRow {
-  display: none; /* Eski adet satırı gizlendi */
+  display: none;
 }
 
 /* ====================== SEPET GÜNCELLEMELERİ ====================== */
 
-/* Sepet (cart) */
 .cart {
   display: grid;
-  /* cartHead | cartRows(flex) | cartItemCount | barcodeRow | payRow */
   grid-template-rows: auto 1fr auto auto auto;
   background: var(--panel-bg, #faf7f2);
   border: 1px solid var(--stroke, #d9d3c8);
   border-radius: 14px;
   overflow: hidden;
-  /* Kendi yüksekliğini grid hücresine sığdır */
   min-height: 0;
 }
 
@@ -350,7 +326,6 @@ body,
   flex-shrink: 0;
 }
 
-/* Başlık sütunları - DÜZGÜN HİZALAMA */
 .cartCols {
   display: grid;
   grid-template-columns: 50px 1fr 80px 100px 100px;
@@ -362,13 +337,12 @@ body,
   text-align: center;
 }
 
-.cartCols span:nth-child(1) { text-align: center; } /* Sil */
-.cartCols span:nth-child(2) { text-align: left; }   /* Ürün */
-.cartCols span:nth-child(3) { text-align: center; }   /* Adet */
-.cartCols span:nth-child(4) { text-align: right; }    /* Fiyat */
-.cartCols span:nth-child(5) { text-align: right; }    /* Toplam */
+.cartCols span:nth-child(1) { text-align: center; }
+.cartCols span:nth-child(2) { text-align: left; }
+.cartCols span:nth-child(3) { text-align: center; }
+.cartCols span:nth-child(4) { text-align: right; }
+.cartCols span:nth-child(5) { text-align: right; }
 
-/* Kaydırılabilir ürün listesi */
 .cartRows {
   overflow-y: auto;
   overflow-x: hidden;
@@ -377,7 +351,6 @@ body,
   min-height: 0;
 }
 
-/* KOMPAKT SEPET SATIRI - DÜZGÜN HİZALAMA */
 .cartRow.compact {
   display: grid;
   grid-template-columns: 50px 1fr 80px 100px 100px;
@@ -390,12 +363,10 @@ body,
   align-items: center;
 }
 
-/* Sil butonu hücresi */
 .cartRow.compact > button {
   justify-self: center;
 }
 
-/* Sadece ürün ismi - ikon yok */
 .cartNameCompact {
   display: flex;
   align-items: center;
@@ -403,7 +374,6 @@ body,
   overflow: hidden;
 }
 
-/* Kompakt ürün ismi */
 .productNameCompact {
   font-size: 14px;
   font-weight: 700;
@@ -417,7 +387,6 @@ body,
   white-space: nowrap;
 }
 
-/* Adet kontrol butonları - ortada */
 .cartControls.compact {
   display: flex;
   flex-direction: column;
@@ -446,7 +415,6 @@ body,
   transform: scale(1.05);
 }
 
-/* Fiyat bölümü - sağa hizalı */
 .cartCalc.compact {
   display: flex;
   flex-direction: column;
@@ -473,7 +441,6 @@ body,
   color: #8a8278;
 }
 
-/* Sil butonu */
 .deleteBtn.mini.small {
   width: 36px;
   height: 36px;
@@ -495,7 +462,6 @@ body,
   transform: scale(1.1);
 }
 
-/* YENİ: Ürün Sayısı Bilgisi */
 .cartItemCount {
   display: flex;
   align-items: center;
@@ -522,7 +488,6 @@ body,
   border: 1px solid #d9d3c8;
 }
 
-/* Boş sepet mesajı */
 .emptyCartMessage {
   padding: 40px 20px;
   text-align: center;
@@ -534,42 +499,19 @@ body,
   border: 2px dashed #ddd;
 }
 
-/* Barkod satırı */
 .barcodeRow {
   display: grid;
-  grid-template-columns: 1fr 110px 110px;
+  grid-template-columns: 2fr 1fr 1fr;
   gap: 10px;
   padding: 10px 12px;
   background: #f4efe6;
   border-top: 1px solid var(--stroke, #d9d3c8);
   flex-shrink: 0;
+  align-items: center;
 }
 
 .barcodeInput {
-  display: grid;
-  grid-template-columns: 28px 1fr 60px;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  padding: 0 10px;
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid var(--stroke, #d9d3c8);
-  min-width: 0;
-}
-
-.barcodeInput input {
-  border: none;
-  outline: none;
-  height: 100%;
-  min-width: 0;
-}
-
-.barcodeIcon,
-.barcodePict {
-  color: #6a655d;
-  font-weight: 900;
-  opacity: 0.9;
+  display: none;
 }
 
 .softBtn {
@@ -585,7 +527,6 @@ body,
   background: #f4c7c7;
 }
 
-/* Ödeme butonları */
 .payRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -618,7 +559,6 @@ body,
 /* ── SAĞ PANEL ────────────────────────────────────────────────── */
 .right {
   display: grid;
-  /* cats | productsWrap | totalBar | bottomBar */
   grid-template-rows: auto 1fr auto auto;
   gap: 10px;
   min-width: 0;
@@ -626,7 +566,6 @@ body,
   overflow: hidden;
 }
 
-/* Kategori butonları */
 .cats {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -687,13 +626,11 @@ body,
   color: #2b2823;
   text-align: center;
   white-space: pre-line;
-  /* Uzun etiketlerin taşmasını önle */
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
 }
 
-/* Ürün alanı */
 .productsWrap {
   min-width: 0;
   min-height: 0;
@@ -750,7 +687,7 @@ body,
   color: #2b2823;
 }
 
-/* Toplam bar - Sol paneldeki butonlarla aynı hizada */
+/* SAĞ PANEL - Toplam Bar: Sadece bekletilen ürünler gösterilir */
 .totalBar {
   display: grid;
   grid-template-columns: 1fr;
@@ -764,7 +701,6 @@ body,
   overflow: hidden;
 }
 
-/* Sadece toplam ödenecek gösterimi */
 .totalBar .totalMid {
   display: grid;
   justify-items: center;
@@ -788,7 +724,28 @@ body,
   white-space: nowrap;
 }
 
-/* Alt buton çubuğu - Sayfanın en altında */
+/* Bekletilen toplam için özel renk (turuncu) */
+.totalValue.held {
+  color: #e65100;
+  text-shadow: 0 2px 0 rgba(230, 81, 0, 0.15);
+}
+
+/* Boş bekletme durumu için gri renk */
+.totalValue.empty {
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 36px;
+}
+
+/* Bekletilen ürün sayısı */
+.heldItemCount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6a655d;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+
 .bottomBar {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -814,7 +771,6 @@ body,
   white-space: nowrap;
 }
 
-/* Boş ürün mesajı */
 .emptyProducts {
   grid-column: 1 / -1;
   padding: 80px 20px;
@@ -822,4 +778,70 @@ body,
   color: #8a8278;
   font-size: 1.1rem;
   font-style: italic;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   YENİ BEKLET (HOLD) ÖZELLİKLERİ İÇİN EKLENEN STILLER
+   ═══════════════════════════════════════════════════════════════ */
+
+.totalDisplayBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #2d4b45 0%, #3d5b55 100%);
+  border-radius: 12px;
+  border: 2px solid #4a8f6b;
+  min-width: 0;
+  flex: 1;
+}
+
+.totalDisplayLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.totalDisplayValue {
+  font-size: 22px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.holdBtn {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%) !important;
+  color: #e65100 !important;
+  font-weight: 900 !important;
+  font-size: 14px !important;
+  border: 2px solid #ff9800 !important;
+  transition: all 0.2s ease !important;
+}
+
+.holdBtn:hover {
+  background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.holdBtn.active {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+  color: #2e7d32 !important;
+  border: 2px solid #4caf50 !important;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(76, 175, 80, 0); }
+}
+
+.emptyCartMessage.holding {
+  background: #fff8e1;
+  border: 2px dashed #ffa000;
+  color: #e65100;
 }
