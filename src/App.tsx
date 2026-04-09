@@ -33,6 +33,9 @@ function App() {
   
   const [selectedCartIndex, setSelectedCartIndex] = useState<number | null>(null);
   const [paymentModal, setPaymentModal] = useState<PaymentType>(null);
+  
+  // Ödeme seçenekleri modalı için yeni state
+  const [showPaymentOptions, setShowPaymentOptions] = useState(false);
 
   const weightCategories = ['meyve', 'sebze'];
   const [scaleModal, setScaleModal] = useState<{
@@ -328,10 +331,22 @@ function App() {
   const openPaymentModal = (type: PaymentType) => {
     if (cart.length === 0) return;
     setPaymentModal(type);
+    setShowPaymentOptions(false); // Ödeme seçeneklerini kapat
   };
 
   const closePaymentModal = () => {
     setPaymentModal(null);
+  };
+
+  // YENİ: Ödeme Al butonu için fonksiyon
+  const handlePaymentAl = () => {
+    if (cart.length === 0) return;
+    setShowPaymentOptions(true);
+  };
+
+  // YENİ: Ödeme seçeneklerini kapat
+  const closePaymentOptions = () => {
+    setShowPaymentOptions(false);
   };
 
   const handleProductUpdate = () => {
@@ -786,7 +801,20 @@ function App() {
             >
               ❌ İptal
             </button>
-            <button type="button">F9 - Ödeme Al</button>
+            <button 
+              type="button"
+              onClick={handlePaymentAl}
+              disabled={cart.length === 0}
+              style={{ 
+                background: cart.length === 0 ? '#ccc' : '#28a745', 
+                color: 'white', 
+                fontWeight: 'bold',
+                opacity: cart.length === 0 ? 0.5 : 1,
+                cursor: cart.length === 0 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              💰 Ödeme Al (F9)
+            </button>
             <button 
               type="button" 
               onClick={() => navigate('/product-update')}
@@ -890,6 +918,143 @@ function App() {
               >
                 Sepete Ekle ✓
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* YENİ: Ödeme Seçenekleri Modalı */}
+      {showPaymentOptions && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200,
+          padding: 20
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: 16, width: '100%', maxWidth: 480,
+            maxHeight: '90vh', overflow: 'auto',
+            boxShadow: '0 25px 80px rgba(0,0,0,0.4)'
+          }}>
+            <div style={{
+              padding: '24px 28px', borderBottom: '2px solid #e5e5e5',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: 'linear-gradient(135deg, #2d4b45 0%, #4a8f6b 100%)'
+            }}>
+              <div style={{ color: '#fff', fontSize: 22, fontWeight: 800 }}>
+                💳 Ödeme Yöntemi Seçin
+              </div>
+              <button
+                onClick={closePaymentOptions}
+                style={{
+                  background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', 
+                  fontSize: 24, cursor: 'pointer', padding: '4px 12px', borderRadius: 8,
+                  lineHeight: 1, transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ padding: '28px' }}>
+              <div style={{ 
+                textAlign: 'center', 
+                marginBottom: 24, 
+                padding: '16px 20px', 
+                background: '#f8f9fa', 
+                borderRadius: 12,
+                border: '2px dashed #dee2e6'
+              }}>
+                <div style={{ fontSize: 14, color: '#6c757d', marginBottom: 4 }}>Ödenecek Tutar</div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: '#2d4b45' }}>{totals.total} ₺</div>
+              </div>
+
+              <div style={{ display: 'grid', gap: 16 }}>
+                <button
+                  onClick={() => openPaymentModal('nakit')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 20, padding: '24px 28px',
+                    borderRadius: 14, border: '3px solid #28a745', background: '#fff',
+                    cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left',
+                    boxShadow: '0 4px 12px rgba(40,167,69,0.15)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#28a745';
+                    e.currentTarget.style.color = '#fff';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(40,167,69,0.3)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = '#fff';
+                    e.currentTarget.style.color = '#000';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(40,167,69,0.15)';
+                  }}
+                >
+                  <span style={{ fontSize: 48 }}>💵</span>
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 800 }}>Nakit Ödeme</div>
+                    <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>Peşin nakit tahsilat</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => openPaymentModal('kredi')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 20, padding: '24px 28px',
+                    borderRadius: 14, border: '3px solid #007bff', background: '#fff',
+                    cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left',
+                    boxShadow: '0 4px 12px rgba(0,123,255,0.15)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#007bff';
+                    e.currentTarget.style.color = '#fff';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,123,255,0.3)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = '#fff';
+                    e.currentTarget.style.color = '#000';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,123,255,0.15)';
+                  }}
+                >
+                  <span style={{ fontSize: 48 }}>💳</span>
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 800 }}>Kredi Kartı</div>
+                    <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>POS cihazı ile ödeme</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => openPaymentModal('acik')}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 20, padding: '24px 28px',
+                    borderRadius: 14, border: '3px solid #ffc107', background: '#fff',
+                    cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left',
+                    boxShadow: '0 4px 12px rgba(255,193,7,0.15)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#ffc107';
+                    e.currentTarget.style.color = '#000';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(255,193,7,0.3)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = '#fff';
+                    e.currentTarget.style.color = '#000';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,193,7,0.15)';
+                  }}
+                >
+                  <span style={{ fontSize: 48 }}>🧾</span>
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 800 }}>Açık Hesap</div>
+                    <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>Veresiye kaydı</div>
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
